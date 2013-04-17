@@ -1,4 +1,4 @@
 mashup-doodle
 =============
 
-TODO
+TODO - intro text
