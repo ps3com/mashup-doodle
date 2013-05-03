@@ -1,6 +1,7 @@
 var MashupEngine = (function() {
 	
 	var courseId = null;
+	var canEdit = null;  //TODO this is set but we need to hide bits when a student is viewing the mashup
 	var htmlParent = null;
 	var importOMDLPageUrl = null;
 	var exportOMDLPageUrl = null;
@@ -45,18 +46,56 @@ var MashupEngine = (function() {
         }
         
         function getWidgetsForPage(){
-			$.get(MashupEngine.getWidgetsForPageUrl, { mashupPageId: currentPage, courseId: MashupEngine.courseId})
+			$.get(MashupEngine.getWidgetsForPageUrl, { pageId: currentPage, courseId: MashupEngine.courseId})
 			.done(function(data) {
-				//alert(data);
-				$('#page-'+currentPage).append(data);
-				//alert("len:"+$('#page-'+currentPage+' ul li').size());
-				//<div id="noWidgetsFound-"'.$mashupPageId.' style="align:center"><h1><a href="#" class="browseW3CWidgets">Add widgets to this page</a></h1></div>
-				initGridster();
+				var widgets = jQuery.parseJSON(data);
+				generateWidgetsForPage(widgets, currentPage);
 			})
 			.fail(function(err) { 
 				console.log(err);
 				alert("Error retrieving widgets for this page");
 			});	
+        }
+        
+        function generateWrapperForSingleWidget(widget){
+        	var layout = "";
+       		layout+='<li id="widget-li-'+widget['id']+'" data-localident="'+widget['id']+'" data-row="'+widget['dataRow']+'" data-col="'+widget['dataCol']+'" data-sizex="'+widget['dataSizeX']+'" data-sizey="'+widget['dataSizeY']+'">';
+       		layout+='    <div class="wrapper" id="widget-wrapper-'+widget['id']+'">';
+       		layout+='        <div class="widgetmenubar" id="widget-menubar-'+widget['id']+'">';
+       		layout+='            <div class="left" style="height:16px;width:16px;"><a href="#" class="min">&nbsp;</a><!--<img src="icons/arrow-stop-090.png"/>--></div>';
+       		layout+='            <div class="right" style="height:16px;width:16px;" id="contextmenu-'+widget['id']+'"><img src="/course/format/mashup/images/calendar.png"/></div>';
+       		layout+='            <div class="center" style="text-align:center;"><h2>'+widget['title']+'</h2></div>';
+       		layout+='        </div>';
+       		layout+='        <div class="widgetwrapper">';
+       		layout+='            <iframe class="vis" src="'+widget['url']+'"></iframe>';
+       		layout+='        </div>';
+       		layout+='    </div>';
+       		layout+='</li>';
+       		return layout;
+        }
+        
+        function generateWidgetsForPage(widgets, currentPage){
+        	var gridsterLayout = '<div class="gridster" style="width:100%" data-mashup-cols="'+widgets[0].layout+'">';
+        	widgets.shift(); //remove the layout code
+        	gridsterLayout+='<ul>';
+        	if(widgets.length>0){
+	           	$.each(widgets, function() {      		
+	           		gridsterLayout += generateWrapperForSingleWidget(this);
+	        	});
+        	}
+        	else{
+        		gridsterLayout+='<div id="noWidgetsFound-"'+currentPage+' style="align:center;width:100%"><h1><a href="#" class="browseW3CWidgets">Add widgets to this page</a></h1></div>';
+        	}
+
+        	gridsterLayout+='</ul>';
+           	gridsterLayout+='</div>';
+        	$('#page-'+currentPage).append(gridsterLayout);
+        	
+			//alert(data);
+			//$('#page-'+currentPage).append(data);
+			//alert("len:"+$('#page-'+currentPage+' ul li').size());
+			//
+			initGridster();
         }
         
         function addNewPage(){		
@@ -124,7 +163,9 @@ var MashupEngine = (function() {
 		function addNewWidgetToPage(widgetId, widgetTitle, widgetType){
 			$.get(MashupEngine.newWidgetInstanceUrl, { url: widgetId, title: widgetTitle, widgetType: widgetType, courseId: MashupEngine.courseId, pageId:currentPage})
 			.done(function(data) {
-				gridster.add_widget(data, 1, 1, 1 ,1);
+				var widgets = jQuery.parseJSON(data);
+				var markup = generateWrapperForSingleWidget(widgets[0]);
+				gridster.add_widget(markup, 1, 1, 1 ,1);
 				serializeGrid();
 				$("#w3cBrowseForm").dialog("close");
 			})
@@ -275,6 +316,22 @@ var MashupEngine = (function() {
 		}
 		
 		function initMenuBar(){
+			var menuHTML="";
+			menuHTML+='<div>';
+			menuHTML+='<ul id="bar1" class="menubar ui-menubar ui-widget-header ui-helper-clearfix" role="menubar" style="background: #E4E2D6;">';
+			menuHTML+='	<li class="ui-menubar-item" role="presentation">';
+			menuHTML+='		<a href="#" tabindex="-1" aria-haspopup="true" class="ui-button ui-widget ui-button-text-only ui-menubar-link" role="menuitem"><span class="ui-button-text">Options</span></a>';
+			menuHTML+='		<ul id="ui-id-12" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" tabindex="0" style="display: none;" aria-hidden="true" aria-expanded="false">';
+	        menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="import_page" class="ui-corner-all" tabindex="-1" role="menuitem">Import page</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="export_page" class="ui-corner-all" tabindex="-1" role="menuitem">Export page</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_page" class="ui-corner-all" tabindex="-1" role="menuitem">New page</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" class="browseW3CWidgets ui-corner-all" tabindex="-1" role="menuitem">Browse Widgets</a></li>';
+			menuHTML+='		</ul>';
+			menuHTML+='	</li>';
+			menuHTML+='</ul>';
+			menuHTML+='</div>';
+			$('#'+MashupEngine.htmlParent).append(menuHTML);
+			
 			$("#bar1").menubar({
 				position: {
 					within: $("#demo-frame").add(window).first()
@@ -311,7 +368,7 @@ var MashupEngine = (function() {
         	
         	// do the first page
         	pageId = pages[0]['id'];
-        	layout = pages[0]['pageLayout'];
+        	//layout = pages[0]['pageLayout'];
         	currentPage = pageId;
         	getWidgetsForPage();
         	initPages();
@@ -464,9 +521,11 @@ var MashupEngine = (function() {
 			$('#'+MashupEngine.htmlParent).append(data);
 		}
 
-        function init() {
+        function init(){
+        	if(MashupEngine.canEdit){
+        		initMenuBar();
+        	}
         	initParent();
-        	initMenuBar();
         	initBrowseForm();
         	getPagesForCourse();
 			createContextMenus();
@@ -480,6 +539,7 @@ var MashupEngine = (function() {
 	
 	function init(args) {
         this.courseId = args.courseId;
+        this.canEdit = args.canEdit;
         this.htmlParent = args.htmlParent;
         this.getWidgetsForPageUrl = args.getWidgetsForPageUrl;
         this.importOMDLPageUrl = args.importOMDLPageUrl;
