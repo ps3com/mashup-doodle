@@ -16,10 +16,10 @@ class OmdlWidgetReference {
 	}
 
 	public function getWidgetTypeFromFormatType(){
-		if($this->widgetType == OmdlConstants::APP_TYPE_OPENSOCIAL){
-			return OmdlConstants::MOODLE_APP_TYPE_OPENSOCIAL;			
-		}else if($this->widgetType == OmdlConstants::APP_TYPE_W3C){			
-			return OmdlConstants::MOODLE_APP_TYPE_W3C;
+		if($this->widgetType == OmdlConstants::MOODLE_APP_TYPE_OPENSOCIAL){
+			return OmdlConstants::APP_TYPE_OPENSOCIAL;			
+		}else if($this->widgetType == OmdlConstants::MOODLE_APP_TYPE_W3C){
+			return OmdlConstants::APP_TYPE_W3C;
 		}
 		return null;
 	}
@@ -33,12 +33,12 @@ class OmdlWidgetReference {
 	}
 
 	public function getWidgetLink() {
-		
-		if(strncmp($this->widgetLink, "?format=", strlen("?format=")) && isset($this->widgetType)){
-	  //if(!widgetLink.contains("?format=") && widgetType != null){
-			return $this->widgetLink + "?format=" + $this->widgetType;
+		if(stristr( $this->widgetLink, '?format=') === FALSE) {		
+			return $this->widgetLink . "?format=" . $this->widgetType;
 		}
-		return widgetLink;
+		else{
+			return $this->widgetLink;
+		}
 	}
 
 	public function setWidgetLink($widgetLink) {
