@@ -58,6 +58,10 @@ class MoodleWidget {
 		return $this->url;
 	}
 	
+	public function setUrl($url){
+		$this->url = $url;
+	}
+	
 	public function getTitle(){
 		return $this->title;
 	}
