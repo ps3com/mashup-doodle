@@ -202,8 +202,12 @@ var MashupEngine = (function() {
 			var current = $('#'+originalId).zIndex();
 			if(current>10){
 				// minimize
+				if(MashupEngine.canEdit){
+					gridster.enable();
+				}
 				$('#'+originalId).zIndex(2);
 			}else{
+				gridster.disable();
 				$('#'+originalId).zIndex(12);
 			}			
 			$('#'+originalId).toggleClass("sDashboardWidgetContainerMaximized");
@@ -268,14 +272,13 @@ var MashupEngine = (function() {
 				},
 				items: {
 					"fullscreen": {"name": "Full Screen", "icon": "edit"},
-					//"delete": {"name": "Delete", "icon": "delete", disabled: true},
-					"serialize": {"name": "Serialize"},
-					"delete": {"name": "Delete", "icon": "delete"},
+					//"serialize": {"name": "Serialize"},
+					"delete": {"name": "Delete", "icon": "delete", disabled: !MashupEngine.canEdit},
 					"fold1": {
 						"name": "Dimensions", 
 						"items": {
 							"incheight": {"name": "Increase height", "icon": "arrow-090-medium"},
-							"decheight": {"name": "Decrease height", "icon": "arrow-270-medium"},
+							"decheight": {"name": "Decrease height", "icon": "arrow-270-medium", disabled: !MashupEngine.canEdit},
 							"incwidth": {"name": "Increase width", "icon": "arrow-000-medium"},
 							"decwidth": {"name": "Decrease width", "icon": "arrow-180-medium"},
 						}
@@ -375,9 +378,16 @@ var MashupEngine = (function() {
         }
 
         function getTabHtml(id, label){
-        	var tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove page</span></li>";
-        	li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) );
-        	return li;
+        	if(MashupEngine.canEdit){
+        		var tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove page</span></li>";
+        		li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) );
+        		return li;
+        	}
+        	else{
+        		var tabTemplate = "<li><a href='#{href}'>#{label}</a></li>";
+        		li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) );
+        		return li;
+        	}
         }
 		
 		function initPages(){
@@ -514,6 +524,11 @@ var MashupEngine = (function() {
 				var widgetWidth=canvasWidth/cols - 20;
 				gridster.resize_widget_dimensions({widget_base_dimensions: [widgetWidth, 350], min_width: 200});
 			});
+			
+			// disable DnD for certain users
+			if(!MashupEngine.canEdit){
+				gridster.disable();
+			}
 		}
 		
 		function initParent(){
@@ -539,7 +554,7 @@ var MashupEngine = (function() {
 	
 	function init(args) {
         this.courseId = args.courseId;
-        this.canEdit = args.canEdit;
+        this.canEdit = args.canEdit;        
         this.htmlParent = args.htmlParent;
         this.getWidgetsForPageUrl = args.getWidgetsForPageUrl;
         this.importOMDLPageUrl = args.importOMDLPageUrl;
