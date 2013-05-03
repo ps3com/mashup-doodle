@@ -4,8 +4,21 @@ require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlConstants.ph
 class OmdlModelUtils implements OmdlConstants {
 	
 	public static function getMoodleLayoutForImport($omdlInputAdapter){
-		//todo
-		return "Not implemented - todo";
+	    $omdlLayoutString = $omdlInputAdapter->getLayoutCode();
+        if(!isset($omdlLayoutString)) {
+            return getLayoutFromWidgetsPosition($omdlInputAdapter);
+        }
+        if(strpos($omdlLayoutString, OmdlConstants::NUMBER_ONE.OmdlConstants::SPACE.OmdlConstants::COLUMNS )!== false){
+        	return 1;
+        }else if(strpos($omdlLayoutString, OmdlConstants::NUMBER_TWO.OmdlConstants::SPACE.OmdlConstants::COLUMNS )!== false){
+            return 2;
+        }else if(strpos($omdlLayoutString, OmdlConstants::NUMBER_THREE.OmdlConstants::SPACE.OmdlConstants::COLUMNS )!== false){
+        	return 3;
+        }else if(strpos($omdlLayoutString, OmdlConstants::NUMBER_FOUR.OmdlConstants::SPACE.OmdlConstants::COLUMNS )!== false){
+			return 4;
+        }else{
+            return getLayoutFromWidgetsPosition($omdlInputAdapter);
+        }
 	}
 	
 	public static function getLayoutData($layoutCode){
