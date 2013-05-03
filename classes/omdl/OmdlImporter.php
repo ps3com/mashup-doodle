@@ -1,6 +1,7 @@
 <?php
 require_once("{$CFG->dirroot}/course/format/mashup/classes/MashupDatabaseHelper.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlModelUtils.php");
+require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlWebUtils.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlInputAdapter.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlWidgetReference.php");
 
@@ -10,6 +11,7 @@ class OMDLImporter {
 	private $mashupDatabaseHelper;
 	private $omdlInputAdaptor;
 	private $xmlDocument;
+	private $omdlWebUtils;
 
 	
 	function __construct($courseId, $xmlDoc) {
@@ -17,6 +19,7 @@ class OMDLImporter {
 		$this->xmlDocument = $xmlDoc;
 		$this->mashupDatabaseHelper = new MashupDatabaseHelper();
 		$this->omdlInputAdapter = new OmdlInputAdapter();
+		$this->omdlWebUtils = new OmdlWebUtils();
 	}
 	
 	public function fromXML(){
@@ -73,7 +76,62 @@ class OMDLImporter {
 		// update this string into a mashup layout
 		$this->omdlInputAdapter->setLayoutCode(OmdlModelUtils::getMoodleLayoutForImport($this->omdlInputAdapter));
 		
-		return $t; 
+		////////////////////////////
+		$pageName="test"; //todo get from input dialog
+		$mashupPage = new MashupPage(null, $pageName, $this->courseId, $this->omdlInputAdapter->getLayoutCode());
+		$pageId = $mashupPage->serialize();
+		
+		switch ($this->omdlInputAdapter->getLayoutCode()){
+			case 1:
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllUrls(), 1);
+				break;
+			case 2:
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllLeftUrls(), 1);
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllRightUrls(), 2);
+				break;
+			case 3:
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllLeftUrls(), 1);
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllCenterUrls(), 2);
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllRightUrls(), 3);
+				break;
+			case 4:
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllLeftUrls(), 1);
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllCenterUrls(), 2);
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllRightUrls(), 3);
+				$this->populateRegionWidgets($pageId, $this->omdlInputAdapter->getAllUnknownUrls(), 4);
+				break;
+			default:
+				// there are no layouts with more than 4 regions at present
+		}
 	}
+	
+	private function populateRegionWidgets($pageId, $widgetRefArray, $column){
+		$rowCount = 1;
+		foreach($widgetRefArray as $widgetReference) {
+			$moodleWidget = null;
+			// if widget type is W3C....
+			if($widgetReference->getWidgetTypeFromFormatType() == OmdlModelUtils::APP_TYPE_W3C){
+				//if this is a W3C widget then we need to check if it is already imported in wookie
+				if(!$this->omdlWebUtils->doesWidgetExistInWookie($widgetReference->getWidgetIdentifier())){
+					//not installed so we will have to download it and install it to wookie
+					$response = $this->omdlWebUtils->downloadAndInstallW3CWidget($widgetReference->getWidgetLink());
+					if(isset($response)){
+						$moodleWidget = new MoodleWidget(null, $this->courseId, $response['id'], $response->name, 1, $rowCount, $column, 1, 1, $pageId);
+						$moodleWidget->serialize();
+					}
+				}
+				else{
+					// widget is already imported into wookie so create local record
+					$moodleWidget = new MoodleWidget(null, $this->courseId, $widgetReference->getWidgetIdentifier(), $this->omdlWebUtils->getWidgetTitle($widgetReference->getWidgetIdentifier()), 1, $rowCount, $column, 1, 1, $pageId);
+					$moodleWidget->serialize();
+				}
+			}
+			else{
+				// TODO another widget type - opensocial for example
+			}	
+			$rowCount++;
+		}
+	}
+	
 }
 ?>
