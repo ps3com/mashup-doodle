@@ -21,17 +21,25 @@ class Mashup {
 		$markup.=$this->getBrowseDialog();
 		$markup.=$this->getAddPageDialog();
 		$markup.=$this->getImportPageDialog();
-		$markup.=$this->getMenuBar();
-		$markup.=$this->getPages();
+		$markup.=$this->initJS();
 		return $markup;
 	}
 	
-	private function getPages(){
-		$markup='<div id="mashup-content"><div>';
+	private function initJS(){
+		// get permissions to prevent students etc to admin this course
+		$canEdit;
+		$context = get_context_instance(CONTEXT_COURSE, $this->courseId);
+		if (has_capability('moodle/course:manageactivities', $context)) {
+			$canEdit = 'true';
+		}else{
+			$canEdit = 'false';
+		}		
+		$markup='<div id="mashup-content"></div>';
 		// call the js handlers
 		$markup.='
 		<script>
 			$(function(){ //DOM Ready
+				mashup_properties.canEdit='.$canEdit.';
 				mashup_properties.courseId='.$this->courseId.';
 				MashupEngine.init(mashup_properties);
 			});
@@ -121,22 +129,5 @@ class Mashup {
 		return $responseText;
 	}
 	
-	private function getMenuBar(){
-		$responseText="";
-		$responseText.='<div>'.PHP_EOL;
-		$responseText.='<ul id="bar1" class="menubar ui-menubar ui-widget-header ui-helper-clearfix" role="menubar" style="background: #E4E2D6;">'.PHP_EOL;
-		$responseText.='	<li class="ui-menubar-item" role="presentation">'.PHP_EOL;
-		$responseText.='		<a href="http://view.jqueryui.com/menubar/demos/menubar/default.html#View" tabindex="-1" aria-haspopup="true" class="ui-button ui-widget ui-button-text-only ui-menubar-link" role="menuitem"><span class="ui-button-text">Options</span></a>'.PHP_EOL;
-		$responseText.='		<ul id="ui-id-12" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" tabindex="0" style="display: none;" aria-hidden="true" aria-expanded="false">'.PHP_EOL;
-        $responseText.='			<li class="ui-menu-item" role="presentation"><a href="#" id="import_page" class="ui-corner-all" tabindex="-1" role="menuitem">Import page</a></li>'.PHP_EOL;
-		$responseText.='			<li class="ui-menu-item" role="presentation"><a href="#" id="export_page" class="ui-corner-all" tabindex="-1" role="menuitem">Export page</a></li>'.PHP_EOL;
-		$responseText.='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_page" class="ui-corner-all" tabindex="-1" role="menuitem">New page</a></li>'.PHP_EOL;
-		$responseText.='			<li class="ui-menu-item" role="presentation"><a href="#" class="browseW3CWidgets ui-corner-all" tabindex="-1" role="menuitem">Browse Widgets</a></li>'.PHP_EOL;
-		$responseText.='		</ul>'.PHP_EOL;
-		$responseText.='	</li>'.PHP_EOL;
-		$responseText.='</ul>'.PHP_EOL;
-		$responseText.='</div>'.PHP_EOL;
-		return $responseText;
-	}	
 }
 ?>
