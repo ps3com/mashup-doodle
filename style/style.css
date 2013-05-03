@@ -134,7 +134,8 @@ input.wookie-button{
 	{float:right;width:100px;margin:4px
 }
 .center{
-	margin:0 auto;width:100px;
+	margin:0 auto;width:88%;
+	/**border: 1px solid red;**/
 }
 
 .widgetwrapper{
