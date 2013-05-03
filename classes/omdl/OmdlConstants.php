@@ -19,7 +19,7 @@ interface OmdlConstants{
     const FLOW_LAYOUT = "FLOW";
 
     // Layout properties
-    const COLUMNS = "COLUMNS";
+    const COLUMNS = "COLUMN";
     const ROWS = "ROWS";
 
     // Width properties
