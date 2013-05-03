@@ -48,8 +48,9 @@ class OMDLImporter {
 		$title = $this->xmlDocument->xpath('//omdl:'.OmdlConstants::aTITLE);
 		if(sizeof($title)>0){
 			$titleText = $title[0];
+			$this->omdlInputAdapter->setName($titleText);
 		}
-		$this->omdlInputAdapter->setName($title);
+		
 		
 		//get the layout
 		$layout = $this->xmlDocument->xpath('//omdl:'.OmdlConstants::LAYOUT);
@@ -77,7 +78,11 @@ class OMDLImporter {
 		$this->omdlInputAdapter->setLayoutCode(OmdlModelUtils::getMoodleLayoutForImport($this->omdlInputAdapter));
 		
 		////////////////////////////
-		$pageName="test"; //todo get from input dialog
+		$pageName = $this->omdlInputAdapter->getName(); 
+		if(!isset($pageName)){
+			$pageName = "Main";	
+		}
+		
 		$mashupPage = new MashupPage(null, $pageName, $this->courseId, $this->omdlInputAdapter->getLayoutCode());
 		$pageId = $mashupPage->serialize();
 		
