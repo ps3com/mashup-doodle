@@ -1,14 +1,33 @@
 mashup-doodle
 =============
 
-A mashup type course format for moodle which is able to import and export layouts and widget data as omdl.
+A mashup type course format for moodle which allows a teacher to define pages of aggregated widgets in various column/row layouts and share these with students.  These pages can also be imported/exported in <a href="http://omdl.org/">OMDL format</a>. 
 
-(1) Create a new folder called "mashup" under path-to-moodle/course/format/
+![Alt text](screenshot.jpg "Mashup screenshot")
+
+At present the mashup format only supports W3C widgets, but there is further scope to support other types, such as Open Social gadgets.
+
+Getting Started
+---------------
+
+(1) Download and install Moodle (http://download.moodle.org/)
+	
+	(Note: This code base is being primarily developed against Moodle 2.4 on Windows using the XAMPP package)
+	
+(2) Create a new folder called "mashup" under path-to-moodle/course/format/
 
 	i.e. Create "path-to-moodle/course/format/mashup"
 	
-(2) Check out this project and put everything in the folder you just created
+(3) Check out this project and put everything in the folder you just created
 
-(3) Manually setup your DB
+(4) Download & start Apache Wookie (http://wookie.apache.org/)
 
-	TODO - manual DB install instructions
+	You can use a standalone binary version found <a href="http://wookie.apache.org/docs/download.html">here</a> if you don't want to build it yourself. 
+
+(5) Startup Moodle
+
+	Login as an administrator and go to the notification pages.  Moodle should have found the new course format follow the on screen instructions to install the new format.
+	
+(6) Create a new course
+
+	As a course creator/teacher create a new course based on the "mashup" course format.
