@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="course/format/mashup/db" VERSION="20130508" COMMENT="XMLDB file for Moodle course/format/mashup"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="mashup_page" COMMENT="A moodle mashup page" NEXT="moodle_widget">
+      <FIELDS>
+        <FIELD NAME="entity_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="page_name"/>
+        <FIELD NAME="page_name" TYPE="char" LENGTH="45" NOTNULL="true" DEFAULT="Main" SEQUENCE="false" COMMENT="The name given to this mashup page" PREVIOUS="entity_id" NEXT="course_id"/>
+        <FIELD NAME="course_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The moodle course id" PREVIOUS="page_name" NEXT="page_layout"/>
+        <FIELD NAME="page_layout" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="A layout code" PREVIOUS="course_id"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="entity_id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="mashup_widget" COMMENT="A single widget within a mashup page" PREVIOUS="mashup_page">
+      <FIELDS>
+        <FIELD NAME="entity_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course_id"/>
+        <FIELD NAME="course_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The moodle course id" PREVIOUS="entity_id" NEXT="url"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="200" NOTNULL="true" SEQUENCE="false" COMMENT="The url of the widget" PREVIOUS="course_id" NEXT="title"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="The title of this widget" PREVIOUS="url" NEXT="widget_type"/>
+        <FIELD NAME="widget_type" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="The type of widget" PREVIOUS="title" NEXT="wrow"/>
+        <FIELD NAME="wrow" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="The row on which this widget appears" PREVIOUS="widget_type" NEXT="wcol"/>
+        <FIELD NAME="wcol" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="wrow" NEXT="size_x"/>
+        <FIELD NAME="size_x" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="The number of columns this widget can span" PREVIOUS="wcol" NEXT="size_y"/>
+        <FIELD NAME="size_y" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="The number of row this widget spans" PREVIOUS="size_x" NEXT="page_id"/>
+        <FIELD NAME="page_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The mashup page this widget belongs to" PREVIOUS="size_y"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="entity_id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

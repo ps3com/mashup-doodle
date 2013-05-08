@@ -1,8 +1,5 @@
 <?php
-define( "MOD_DB_HOST", '127.0.0.1' );
-define( "MOD_DB_NAME", 'mashup' );
-define( "MOD_DB_USER", 'java' );
-define( "MOD_DB_PASS", 'java' );
+require_once("{$CFG->dirroot}/config.php");
 
 class MashupDatabaseConnector {
 	private $connection = null;
@@ -11,35 +8,41 @@ class MashupDatabaseConnector {
 
 	private static $db;
 
-
 	function imports_db(){
 		$this->init();
 	}
 
-	function __construct ( ) {
+	function __construct(){
 		$this->init();
 	}
 
-	function init ( ) {
-		$this->connection = mysql_connect(MOD_DB_HOST, MOD_DB_USER, MOD_DB_PASS, true);
+	function init(){
+		global $CFG;
+				
+		$dbHost = $CFG->dbhost;
+		$dbName = $CFG->dbname;
+		$dbUser = $CFG->dbuser;
+		$dbPass = $CFG->dbpass;
+		
+		$this->connection = mysql_connect($dbHost, $dbUser, $dbPass, true);
 		if (!$this->connection ) {
 			$this->db_error = 'Error creating connection: '.mysql_error();
 			return;
 		}
-		if ( !mysql_select_db(MOD_DB_NAME, $this->connection ) ) {
-			$this->db_error = 'Can\'t use '.MOD_DB_NAME.' '.mysql_error();
+		if ( !mysql_select_db($dbName, $this->connection ) ) {
+			$this->db_error = 'Can\'t use '.$dbName.' '.mysql_error();
 		}
 	}
 
-	function get_db_link () {
+	function get_db_link(){
 		return $this->connection;
 	}
 
-	function get_error() {
+	function get_error(){
 		return $this->db_error;
 	}
 
-	function execute_sql ( $sql, $returnObject=true ) {
+	function execute_sql($sql, $returnObject=true){
 		$db_error = null;
 		$returnData = null;
 		if ( $this->connection == null ) {
@@ -70,7 +73,7 @@ class MashupDatabaseConnector {
 		return $returnData;
 	}
 
-	public static function GetInstance () {
+	public static function GetInstance(){
 		if ( empty(self::$db) ) {
 			self::$db = new MashupDatabaseConnector();
 		}

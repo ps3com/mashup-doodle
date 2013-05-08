@@ -16,7 +16,7 @@ class MashupDatabaseHelper {
 	}
 	
 	function deleteWidget($dbkey){
-		$sqldelete = "DELETE FROM `moodle_widget` WHERE `entity_id`= $dbkey";
+		$sqldelete = "DELETE FROM `mdl_mashup_widget` WHERE `entity_id`= $dbkey";
 		$result = $this->mashupDatabaseConnector->execute_sql($sqldelete, false );
 		if ( $result == null ) {
 			if ($this->mashupDatabaseConnector->get_error() != null ) {
@@ -26,7 +26,7 @@ class MashupDatabaseHelper {
 	}
 	
 	function updateWidget($gridsterWidget, $course){
-		$sqlupdate = 'UPDATE `moodle_widget` SET wrow='.$gridsterWidget->row.',
+		$sqlupdate = 'UPDATE `mdl_mashup_widget` SET wrow='.$gridsterWidget->row.',
 												wcol='.$gridsterWidget->col.',
 												size_x='.$gridsterWidget->sizex.',
 												size_y='.$gridsterWidget->sizey.'
@@ -41,7 +41,7 @@ class MashupDatabaseHelper {
 	}
 	
 	function addNewWidget($courseid, $url, $title, $widgetType, $datarow, $datacol, $datasizex, $datasizey, $pageId){
-		$sqlinsert = 'INSERT INTO `moodle_widget` (`course_id`, `url`, `title`, `widget_type`, `wrow`, `wcol`, `size_x`, `size_y`, `page_id`) VALUES ('.$courseid.', \''
+		$sqlinsert = 'INSERT INTO `mdl_mashup_widget` (`course_id`, `url`, `title`, `widget_type`, `wrow`, `wcol`, `size_x`, `size_y`, `page_id`) VALUES ('.$courseid.', \''
 				.$url.'\', \''.$title.'\', '.$widgetType.', '.$datarow.', '.$datacol.', '.$datasizex.', '.$datasizey.', '.$pageId.')';
 				
 		$result = $this->mashupDatabaseConnector->execute_sql($sqlinsert, false );
@@ -54,7 +54,7 @@ class MashupDatabaseHelper {
 	}
 	
 	function addNewPage($pageName, $courseId, $pageLayout ){
-		$sqlinsert = 'INSERT INTO `mashup_page` (`page_name`, `course_id`, `page_layout`) VALUES (\''
+		$sqlinsert = 'INSERT INTO `mdl_mashup_page` (`page_name`, `course_id`, `page_layout`) VALUES (\''
 				.$pageName.'\', '.$courseId.', '.$pageLayout.')';
 	
 		$result = $this->mashupDatabaseConnector->execute_sql($sqlinsert, false );
@@ -68,7 +68,7 @@ class MashupDatabaseHelper {
 	
 	function deletePage($dbkey){
 		// first delete any widgets from this page
-		$sqldelete = "DELETE FROM `moodle_widget` WHERE `page_id`= $dbkey";
+		$sqldelete = "DELETE FROM `mdl_mashup_widget` WHERE `page_id`= $dbkey";
 		$result = $this->mashupDatabaseConnector->execute_sql($sqldelete, false );
 		if ( $result == null ) {
 			if ($this->mashupDatabaseConnector->get_error() != null ) {
@@ -76,23 +76,22 @@ class MashupDatabaseHelper {
 			}
 		}
 		//now delete the page
-		$sqldelete = "DELETE FROM `mashup_page` WHERE `entity_id`= $dbkey";
+		$sqldelete = "DELETE FROM `mdl_mashup_page` WHERE `entity_id`= $dbkey";
 		$result = $this->mashupDatabaseConnector->execute_sql($sqldelete, false );
 		if ( $result == null ) {
 			if ($this->mashupDatabaseConnector->get_error() != null ) {
 				echo ( $this->mashupDatabaseConnector->get_error());
 			}
 		}
-	
 	}
 	
 	public function getPagesForCourse($courseId){
-		$sqllookup = "SELECT mashup_page.entity_id,
-		mashup_page.page_name,
-		mashup_page.course_id,
-		mashup_page.page_layout		
-		from mashup_page
-		where mashup_page.course_id = $courseId";
+		$sqllookup = "SELECT mdl_mashup_page.entity_id,
+		mdl_mashup_page.page_name,
+		mdl_mashup_page.course_id,
+		mdl_mashup_page.page_layout		
+		from mdl_mashup_page
+		where mdl_mashup_page.course_id = $courseId";
 		$persistedPages = $this->mashupDatabaseConnector->execute_sql ($sqllookup);
 		$pages = array();
 		if (!isset($persistedPages)){
@@ -109,23 +108,23 @@ class MashupDatabaseHelper {
 	}
 	
 	public function getSinglePage($pageId){
-		$sqllookup = "SELECT mashup_page.entity_id,
-		mashup_page.page_name,
-		mashup_page.course_id,
-		mashup_page.page_layout		
-		from mashup_page
-		where mashup_page.entity_id = $pageId";
+		$sqllookup = "SELECT mdl_mashup_page.entity_id,
+		mdl_mashup_page.page_name,
+		mdl_mashup_page.course_id,
+		mdl_mashup_page.page_layout		
+		from mdl_mashup_page
+		where mdl_mashup_page.entity_id = $pageId";
 		$result = $this->mashupDatabaseConnector->execute_sql ($sqllookup);
 		return $result[0];
 	}
 	
 	public function getLayoutForPage($pageId){
-		$sqllookup = "SELECT mashup_page.entity_id,
-		mashup_page.page_name,
-		mashup_page.course_id,
-		mashup_page.page_layout		
-		from mashup_page
-		where mashup_page.entity_id = $pageId";
+		$sqllookup = "SELECT mdl_mashup_page.entity_id,
+		mdl_mashup_page.page_name,
+		mdl_mashup_page.course_id,
+		mdl_mashup_page.page_layout		
+		from mdl_mashup_page
+		where mdl_mashup_page.entity_id = $pageId";
 		$pageLayout = $this->mashupDatabaseConnector->execute_sql ($sqllookup);
 		if (!isset($pageLayout)){
 			echo $this->mashupDatabaseConnector->get_error();
@@ -134,18 +133,18 @@ class MashupDatabaseHelper {
 	}
 	
 	public function getWidgetsForPage($pageId){
-		$sqllookup = "SELECT moodle_widget.entity_id,
-		moodle_widget.course_id,
-		moodle_widget.url,
-		moodle_widget.title,
-		moodle_widget.widget_type,
-		moodle_widget.wrow,
-		moodle_widget.wcol,
-		moodle_widget.size_x,
-		moodle_widget.size_y,
-		moodle_widget.page_id
-		from moodle_widget
-		where moodle_widget.page_id = $pageId order by wcol, wrow";
+		$sqllookup = "SELECT mdl_mashup_widget.entity_id,
+		mdl_mashup_widget.course_id,
+		mdl_mashup_widget.url,
+		mdl_mashup_widget.title,
+		mdl_mashup_widget.widget_type,
+		mdl_mashup_widget.wrow,
+		mdl_mashup_widget.wcol,
+		mdl_mashup_widget.size_x,
+		mdl_mashup_widget.size_y,
+		mdl_mashup_widget.page_id
+		from mdl_mashup_widget
+		where mdl_mashup_widget.page_id = $pageId order by wcol, wrow";
 		$persistedWidgets = $this->mashupDatabaseConnector->execute_sql ($sqllookup);
 		$widgets = array();
 		if (!isset($persistedWidgets)){
