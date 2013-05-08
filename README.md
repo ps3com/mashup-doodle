@@ -22,7 +22,11 @@ Getting Started
 
 (4) Download & start Apache Wookie (http://wookie.apache.org/)
 
-	You can use a standalone binary version found <a href="http://wookie.apache.org/docs/download.html">here</a> if you don't want to build it yourself. 
+	You can use a standalone binary version found here
+	 
+	http://wookie.apache.org/docs/download.html
+
+	if you don't want to build it yourself. 
 
 (5) Startup Moodle
 
