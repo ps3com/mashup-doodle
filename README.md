@@ -24,7 +24,7 @@ Getting Started
 
 	You can use the standalone binary version found below if you don't want to build it yourself.
 	 
-[a link](http://wookie.apache.org/docs/download.html)
+[Wookie binary download page](http://wookie.apache.org/docs/download.html)
 
 	 
 
