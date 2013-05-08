@@ -26,7 +26,8 @@ Getting Started
 
 (5) Startup Moodle
 
-	Login as an administrator and go to the notification pages.  Moodle should have found the new course format follow the on screen instructions to install the new format.
+	Login as an administrator and go to the notification pages.  Moodle should have found the new course format 
+	follow the on screen instructions to install the new format.
 	
 (6) Create a new course
 
