@@ -1,7 +1,7 @@
 var MashupEngine = (function() {
 	
 	var courseId = null;
-	var canEdit = null;  //TODO this is set but we need to hide bits when a student is viewing the mashup
+	var canEdit = null;
 	var htmlParent = null;
 	var importOMDLPageUrl = null;
 	var exportOMDLPageUrl = null;
@@ -78,24 +78,22 @@ var MashupEngine = (function() {
         	var gridsterLayout = '<div class="gridster" style="width:100%" data-mashup-cols="'+widgets[0].layout+'">';
         	widgets.shift(); //remove the layout code
         	gridsterLayout+='<ul>';
-        	if(widgets.length>0){
+        	//if(widgets.length>0){
 	           	$.each(widgets, function() {      		
 	           		gridsterLayout += generateWrapperForSingleWidget(this);
 	        	});
-        	}
-        	else{
-        		gridsterLayout+='<div id="noWidgetsFound-"'+currentPage+' style="align:center;width:100%"><h1><a href="#" class="browseW3CWidgets">Add widgets to this page</a></h1></div>';
-        	}
-
+        	//}
+        	//else{
+        		gridsterLayout+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="/course/format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
+        	//}
         	gridsterLayout+='</ul>';
            	gridsterLayout+='</div>';
         	$('#page-'+currentPage).append(gridsterLayout);
-        	
-			//alert(data);
-			//$('#page-'+currentPage).append(data);
-			//alert("len:"+$('#page-'+currentPage+' ul li').size());
-			//
 			initGridster();
+			if(widgets.length<1){
+				registerBrowseW3C("#pageAddWidget"+currentPage);
+				$("#noWidgetsFound-"+currentPage).show();
+			}
         }
         
         function addNewPage(){		
@@ -149,10 +147,14 @@ var MashupEngine = (function() {
                 
 		function removeWidgetFromPage(widgetId){
 			$.post(MashupEngine.removeWidgetUrl, { courseId: MashupEngine.courseId, widgetId: $('#'+widgetId).attr('data-localident')})
-			.done(function(data) {				
+			.done(function(data) {	
 				gridster.remove_widget( $('#'+widgetId) );
-				console.log(data);
+				//console.log(data);
 				serializeGrid();
+				if($('#page-'+currentPage+' ul li').size()<2){
+					$("#noWidgetsFound-"+currentPage).show();
+					registerBrowseW3C("#pageAddWidget"+currentPage);
+				}
 			})
 			.fail(function(err) {
 				console.log("Error deleting widget");
@@ -164,6 +166,9 @@ var MashupEngine = (function() {
 			$.get(MashupEngine.newWidgetInstanceUrl, { url: widgetId, title: widgetTitle, widgetType: widgetType, courseId: MashupEngine.courseId, pageId:currentPage})
 			.done(function(data) {
 				var widgets = jQuery.parseJSON(data);
+				if(widgets.length>0){
+					$("#noWidgetsFound-"+currentPage).hide();
+				}
 				var markup = generateWrapperForSingleWidget(widgets[0]);
 				gridster.add_widget(markup, 1, 1, 1 ,1);
 				serializeGrid();
@@ -273,8 +278,9 @@ var MashupEngine = (function() {
 				items: {
 					"fullscreen": {"name": "Full Screen", "icon": "edit"},
 					//"serialize": {"name": "Serialize"},
-					"delete": {"name": "Delete", "icon": "delete", disabled: !MashupEngine.canEdit},
-					"fold1": {
+					"delete": {"name": "Delete", "icon": "delete", disabled: !MashupEngine.canEdit}
+					/*
+					,"fold1": {
 						"name": "Dimensions", 
 						"items": {
 							"incheight": {"name": "Increase height", "icon": "arrow-090-medium"},
@@ -283,6 +289,7 @@ var MashupEngine = (function() {
 							"decwidth": {"name": "Decrease width", "icon": "arrow-180-medium"},
 						}
 					}
+					*/
 				}
 			});
 		}
@@ -352,15 +359,18 @@ var MashupEngine = (function() {
 			//,select: select
 			});
 			
-			$(".browseW3CWidgets").click(function() { // this is the browse widgets link in the main menu
-				$("#widget_gallery").show();
-				$("#w3cBrowseForm").dialog("open");
-			});
+			registerBrowseW3C(".browseW3CWidgets");			
 			
 			$("#export_page").click(function() { 
 				exportOMDLPage();
 			});
-			
+		}
+		
+		function registerBrowseW3C(handler){
+			$(handler).click(function() {
+				$("#widget_gallery").show();
+				$("#w3cBrowseForm").dialog("open");
+			});
 		}
 		
         function generatePageLayout(pages){
