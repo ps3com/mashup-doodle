@@ -78,12 +78,12 @@ class OMDLImporter {
 		$this->omdlInputAdapter->setLayoutCode(OmdlModelUtils::getMoodleLayoutForImport($this->omdlInputAdapter));
 		
 		////////////////////////////
-		$pageName = $this->omdlInputAdapter->getName(); 
+		$pageName = (string)$this->omdlInputAdapter->getName(); 
 		if(!isset($pageName)){
 			$pageName = "Main";	
 		}
-		
-		$mashupPage = new MashupPage(null, $pageName, $this->courseId, $this->omdlInputAdapter->getLayoutCode());
+				
+		$mashupPage = new MashupPage(null, (string)$pageName, $this->courseId, $this->omdlInputAdapter->getLayoutCode());
 		$pageId = $mashupPage->serialize();
 		
 		switch ($this->omdlInputAdapter->getLayoutCode()){
@@ -108,6 +108,8 @@ class OMDLImporter {
 			default:
 				// there are no layouts with more than 4 regions at present
 		}
+		$page = $mashupPage->toJson();
+		return json_encode($page);
 	}
 	
 	private function populateRegionWidgets($pageId, $widgetRefArray, $column){

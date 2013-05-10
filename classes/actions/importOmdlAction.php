@@ -52,7 +52,7 @@ else{
 					$doc = simplexml_load_file($upload->tmp_name);
 					
 					if (!$doc) {
-						$return="Unable to parse xml document\n";
+						$return="Error: Unable to parse xml document\n";
 						foreach (libxml_get_errors() as $error){
 							switch ($error->level) {
 								case LIBXML_ERR_WARNING:
