@@ -37,8 +37,26 @@ var MashupEngine = (function() {
         }
 
         function processFileUploadResult() {
-        	var ret = $('#file_upload_frame').contents().find('html').text();
-            alert(ret);
+        	var data = $('#file_upload_frame').contents().find('html').text();		
+            try{
+            	if(data.startsWith("Warning") || data.startsWith("Error") || data.startsWith("Fatal")){
+            		alert(data);
+            	}
+            	else{
+            		var page = jQuery.parseJSON(data);
+            		var label = page['title'];
+					var id = "page-" + page['id'];
+					var li =  getTabHtml(id, label);
+					$("#pages").find( ".ui-tabs-nav" ).append( li );
+					$("#pages").append( "<div id='" + id + "'></div>" );
+					$("#pages").tabs( "refresh" );		
+					var index = $("#pages").find( ".ui-tabs-nav li#"+id ).parent().index();
+					$("#pages").tabs("option", "active", index);
+					
+            	}
+            }catch(err){
+            	alert("Unable to successfully import page");
+            }
         }
         
         function exportOMDLPage(){
@@ -110,7 +128,9 @@ var MashupEngine = (function() {
 				var li =  getTabHtml(id, label);
 				$("#pages").find( ".ui-tabs-nav" ).append( li );
 				$("#pages").append( "<div id='" + id + "'></div>" );
-				$("#pages").tabs( "refresh" );				
+				$("#pages").tabs( "refresh" );
+				var index = $("#pages").find( ".ui-tabs-nav li#"+id ).parent().index();
+				$("#pages").tabs("option", "active", index);
 			})
 			.fail(function(err) { 
 				console.log(err);
