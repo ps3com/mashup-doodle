@@ -78,14 +78,17 @@ var MashupEngine = (function() {
         	var gridsterLayout = '<div class="gridster" style="width:100%" data-mashup-cols="'+widgets[0].layout+'">';
         	widgets.shift(); //remove the layout code
         	gridsterLayout+='<ul>';
-        	//if(widgets.length>0){
-	           	$.each(widgets, function() {      		
-	           		gridsterLayout += generateWrapperForSingleWidget(this);
-	        	});
-        	//}
-        	//else{
-        		gridsterLayout+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="/course/format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
-        	//}
+        	
+	        $.each(widgets, function() {      		
+	        	gridsterLayout += generateWrapperForSingleWidget(this);
+	        });
+        	
+	        if(MashupEngine.canEdit){
+	        	gridsterLayout+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="/course/format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
+	        }
+	        else{
+	        	gridsterLayout+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1>You do not have permission to add new widgets to this page.</h1></div>';
+	        }
         	gridsterLayout+='</ul>';
            	gridsterLayout+='</div>';
         	$('#page-'+currentPage).append(gridsterLayout);
