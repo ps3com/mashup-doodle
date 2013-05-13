@@ -1,5 +1,5 @@
 <?php
-require_once("{$CFG->dirroot}/course/format/mashup/framework/Widgeta.php");
+require_once("{$CFG->dirroot}/course/format/mashup/classes/connectors/w3c/Widget.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/MashupDatabaseHelper.php");
 
 class MashupPage {

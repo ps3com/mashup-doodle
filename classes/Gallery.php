@@ -1,5 +1,5 @@
 <?php
-require_once("{$CFG->dirroot}/course/format/mashup/framework/WookieConnectorService.php");
+require_once("{$CFG->dirroot}/course/format/mashup/classes/connectors/w3c/WookieConnectorService.php");
 
 class Gallery {
 
