@@ -32,12 +32,25 @@ var MashupEngine = (function() {
                         document.getElementById("file_upload_frame").onload = processFileUploadResult;
                     }
                     $pageFormImport.submit();
-              //  }
+
+                	$("#progressbar").progressbar({
+                		value: false
+                	});
+
+                	$("#please-wait").dialog({
+                		dialogClass: "no-close",
+                		height: 80,
+                		modal: true
+                	});
+            	//}
             }
         }
 
         function processFileUploadResult() {
-        	var data = $('#file_upload_frame').contents().find('html').text();		
+        	var data = $('#file_upload_frame').contents().find('html').text();
+        	$( "#please-wait" ).dialog("close");
+        	$( "#progressbar" ).progressbar("destroy");
+        	
             try{
             	if(data.startsWith("Warning") || data.startsWith("Error") || data.startsWith("Fatal")){
             		alert(data);
@@ -183,6 +196,32 @@ var MashupEngine = (function() {
 				console.log("Error deleting widget");
 				console.log(err);
 			});
+		}
+		
+		function addNewGadgetToPage(){
+			var url = $( "#gadget_url" ).val();
+			if(url.length>1){
+				$.get(MashupEngine.newWidgetInstanceUrl, { url: url, title: "", widgetType: 2, courseId: MashupEngine.courseId, pageId:currentPage})
+				.done(function(data) {
+					var widgets = jQuery.parseJSON(data);
+					if(widgets.length>0){
+						$("#noWidgetsFound-"+currentPage).hide();
+						var markup = generateWrapperForSingleWidget(widgets[0]);
+						gridster.add_widget(markup, 1, 1, 1 ,1);
+						serializeGrid();
+					}else{
+						alert("There was a problem adding this gadget ("+url+")");
+					}
+				})
+				.fail(function(err) { 
+					console.log(err);
+					alert("Error adding new widget:");
+					
+				});			
+			}
+			else{
+				alert("You must enter a value");
+			}
 		}
 		
 		function addNewWidgetToPage(widgetId, widgetTitle, widgetType){
@@ -348,6 +387,75 @@ var MashupEngine = (function() {
 			 */
 		}
 		
+		function initDialogs(){
+			// progress dialog
+			var waitHTML="";
+			waitHTML+='<div id="please-wait" title="Please wait">';
+			waitHTML+='		<div id="progressbar"></div>';
+			waitHTML+='</div>';
+			$('#'+MashupEngine.htmlParent).append(waitHTML);
+			
+			var importHTML="";
+			importHTML+='<div id="importPageDialog" class="dialog" title="Import Page" style="display:none;">';
+	        importHTML+='       <form method="post" id="pageFormImport" class="form-horizontal" enctype="multipart/form-data">';
+	        importHTML+='            <fieldset class="ui-helper-reset">';
+	        importHTML+='                <div class="control-group error">';
+	        importHTML+='                    <label id="pageFormErrorsTabbed2" class="control-label"></label>';
+	        importHTML+='                </div>';
+	        importHTML+='                <div class="control-group">';
+	        importHTML+='                    <label class="control-label" for="omdlFile">Browse for File</label>';
+	        importHTML+='                    <div class="controls">';
+	        importHTML+='                        <input id="omdlFile" name="omdlFile" class="input-xlarge focused required" type="file" value="" />';
+	        importHTML+='                    </div>';
+	        importHTML+='                </div>';
+	        importHTML+='                <div class="control-group">';
+	        importHTML+='                    <div class="controls"><iframe id="file_upload_frame" name="file_upload_frame" src="" style="width:0;height:0;border:0px solid black;"></iframe></div>';
+	        importHTML+='                </div>';
+	        importHTML+='            </fieldset>';
+	        importHTML+='        </form>';
+			importHTML+='</div>';
+			$('#'+MashupEngine.htmlParent).append(importHTML);
+			
+			var addPageHTML='';
+			addPageHTML+='<div id="addPageDialog" class="dialog" title="Add Page" style="display:none;">';
+			addPageHTML+='	<form>';
+			addPageHTML+='		<fieldset class="ui-helper-reset">';
+			addPageHTML+='			<label for="tab_title">Title</label>';
+			addPageHTML+='			<input type="text" name="tab_title" id="tab_title" value="" class="ui-widget-content ui-corner-all" />';
+			addPageHTML+='			<label for="page_layout">Page layout</label>';
+			addPageHTML+='			&nbsp;<select name="page_layout" id="page_layout" class="ui-widget-content ui-corner-all">';
+			addPageHTML+='				<option value="1">One column</option>';
+			addPageHTML+='				<option value="2">Two columns</option>';
+			addPageHTML+='				<option value="3">Three columns</option>';
+			addPageHTML+='				<option value="4">Four columns</option>';
+			addPageHTML+='			</select>';
+			addPageHTML+='		</fieldset>';
+			addPageHTML+='	</form>';
+			addPageHTML+='</div>';
+			// ADDS the delete page confirm
+			//addPageHTML+='<div id="confirmDeletePageDialog" title="Delete Page">'.PHP_EOL;
+		    //addPageHTML+='	<p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>This page will be permanently deleted and cannot be recovered. Are you sure?</p>'.PHP_EOL;
+			//addPageHTML+='</div>'.PHP_EOL;
+			//
+			$('#'+MashupEngine.htmlParent).append(addPageHTML);
+			
+			var addGadgetHTML='';
+			addGadgetHTML+='<div id="addGadgetDialog" class="dialog" title="Add Open Social Gadget" style="display:none;">';
+			addGadgetHTML+='	<form>';
+			addGadgetHTML+='		<fieldset class="ui-helper-reset">';
+			addGadgetHTML+='			<label for="gadget_url">Enter Gadget Url</label>';
+			addGadgetHTML+='			<input type="text" name="gadget_url" id="gadget_url" value="" class="ui-widget-content ui-corner-all" />';
+			addGadgetHTML+='		</fieldset>';
+			addGadgetHTML+='	</form>';
+			addGadgetHTML+='</div>';
+			// ADDS the delete page confirm
+			//addGadgetHTML+='<div id="confirmDeletePageDialog" title="Delete Page">'.PHP_EOL;
+		    //addGadgetHTML+='	<p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>This page will be permanently deleted and cannot be recovered. Are you sure?</p>'.PHP_EOL;
+			//addGadgetHTML+='</div>'.PHP_EOL;
+			//
+			$('#'+MashupEngine.htmlParent).append(addGadgetHTML);
+		}
+		
 		function initMenuBar(){
 			var menuHTML="";
 			menuHTML+='<div>';
@@ -355,10 +463,11 @@ var MashupEngine = (function() {
 			menuHTML+='	<li class="ui-menubar-item" role="presentation">';
 			menuHTML+='		<a href="#" tabindex="-1" aria-haspopup="true" class="ui-button ui-widget ui-button-text-only ui-menubar-link" role="menuitem"><span class="ui-button-text">Options</span></a>';
 			menuHTML+='		<ul id="ui-id-12" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" tabindex="0" style="display: none;" aria-hidden="true" aria-expanded="false">';
-	        menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="import_page" class="ui-corner-all" tabindex="-1" role="menuitem">Import page</a></li>';
-			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="export_page" class="ui-corner-all" tabindex="-1" role="menuitem">Export page</a></li>';
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_page" class="ui-corner-all" tabindex="-1" role="menuitem">New page</a></li>';
-			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" class="browseW3CWidgets ui-corner-all" tabindex="-1" role="menuitem">Browse Widgets</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="import_page" class="ui-corner-all" tabindex="-1" role="menuitem">Import page</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="export_page" class="ui-corner-all" tabindex="-1" role="menuitem">Export page</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" class="browseW3CWidgets ui-corner-all" tabindex="-1" role="menuitem">Browse W3C Widgets</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_gadget" class="addGadget ui-corner-all" tabindex="-1" role="menuitem">Add Open Social Gadget</a></li>';
 			menuHTML+='		</ul>';
 			menuHTML+='	</li>';
 			menuHTML+='</ul>';
@@ -382,13 +491,22 @@ var MashupEngine = (function() {
 			//,select: select
 			});
 			
-			registerBrowseW3C(".browseW3CWidgets");			
+			registerBrowseW3C(".browseW3CWidgets");	
+			//registerAddGadget(".addGadget");
 			
 			$("#export_page").click(function() { 
 				exportOMDLPage();
 			});
 		}
 		
+		/*
+		function registerAddGadget(handler){
+			$(handler).click(function() {
+				$("#widget_gallery").show();
+				$("#w3cBrowseForm").dialog("open");
+			});
+		}
+		*/
 		function registerBrowseW3C(handler){
 			$(handler).click(function() {
 				$("#widget_gallery").show();
@@ -512,6 +630,27 @@ var MashupEngine = (function() {
 				importPageDialog.dialog("open");
 			});
 			//************** end import page dialog **************************
+			var addGadgetDialog = $("#addGadgetDialog").dialog({
+				autoOpen: false,
+				modal: true,
+				buttons: {
+					Add: function() {
+						addNewGadgetToPage();
+						$(this).dialog("close");
+					},
+					Cancel: function() {
+						$(this).dialog("close");
+					}
+				},
+				close: function() {
+					$('#pageFormImport')[0].reset();
+				}
+			});
+
+			// addpage button: just opens the dialog
+			$("#add_gadget").click(function() {
+				addGadgetDialog.dialog("open");
+			});
 		}
 		
 		function initGridster(){
@@ -575,6 +714,7 @@ var MashupEngine = (function() {
         	}
         	initParent();
         	initBrowseForm();
+        	initDialogs();
         	getPagesForCourse();
 			createContextMenus();
 		}
