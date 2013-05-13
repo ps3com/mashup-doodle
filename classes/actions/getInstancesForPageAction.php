@@ -17,9 +17,16 @@ if (isset($_GET['pageId']) ){
 	$persistedWidgets = $mashupDatabaseHelper->getWidgetsForPage($pageId);
 	foreach ($persistedWidgets as $persistedWidget){
 		$instanceGenerator = new InstanceGenerator($persistedWidget->getId());
-		$instance = $instanceGenerator->getWidgetInstance($persistedWidget);
-		$persistedWidget->setUrl($instance->getUrl());
-		array_push($json, $persistedWidget->toJson());
+		try{	
+			$instance = $instanceGenerator->getWidgetInstance($persistedWidget);
+			if($instance instanceof WidgetInstance){
+				$persistedWidget->setUrl($instance->getUrl());
+				array_push($json, $persistedWidget->toJson());
+			}				
+		}
+		catch (Exception $e){
+			//
+		}
 	}	
 	echo json_encode($json);
 }		
