@@ -1,4 +1,7 @@
 <?php
+$settings->add(new admin_setting_configtext('mashup_shindig_url','Shindig Server URL',
+		'', "http://localhost:8080/", PARAM_TEXT));
+
 $settings->add(new admin_setting_configtext('mashup_wookie_url','Wookie Server URL',
                   '', "http://localhost:8080/wookie/", PARAM_TEXT));
 
