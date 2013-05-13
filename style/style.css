@@ -18,6 +18,10 @@
 	/**border: 1px solid red;**/
 }
 
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
 /* widget maximixer*/
 
 .sDashboardWidgetContentMaximized {
