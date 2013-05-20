@@ -1,9 +1,11 @@
 <?php
+require_once("../../../../../config.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/MashupDatabaseHelper.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlModelUtils.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlWebUtils.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlInputAdapter.php");
 require_once("{$CFG->dirroot}/course/format/mashup/classes/omdl/OmdlWidgetReference.php");
+require_once("{$CFG->dirroot}/course/format/mashup/classes/connectors/opensocial/ShindigConnectorService.php");
 
 class OMDLImporter {
 
@@ -113,6 +115,7 @@ class OMDLImporter {
 	}
 	
 	private function populateRegionWidgets($pageId, $widgetRefArray, $column){
+		global $CFG;
 		$rowCount = 1;
 		foreach($widgetRefArray as $widgetReference) {
 			$moodleWidget = null;
@@ -133,8 +136,24 @@ class OMDLImporter {
 					$moodleWidget->serialize();
 				}
 			}
+			else if($widgetReference->getWidgetTypeFromFormatType() == OmdlModelUtils::APP_TYPE_OPENSOCIAL){
+				$errorFlag = false;
+				$title = "unknown";
+				$shindigconnection = new ShindigConnectorService($CFG->mashup_shindig_url);
+				$resp = $shindigconnection->getMetadata($widgetReference->getWidgetIdentifier());
+				if(!strncmp($resp, "Error", strlen("Error"))){
+					$errorFlag = true;
+				}
+				else{
+					$title = $resp;
+				}
+				if(!$errorFlag){
+					$moodleWidget = new MoodleWidget(null, $this->courseId, $widgetReference->getWidgetIdentifier(), $title, 2, $rowCount, $column, 1, 1, $pageId);
+					$moodleWidget->serialize();						
+				}
+			}
 			else{
-				// TODO another widget type - opensocial for example
+				//
 			}	
 			$rowCount++;
 		}
