@@ -7,6 +7,8 @@ echo '<link rel="stylesheet" href="/course/format/mashup/script/jqueryUI/jquery.
 echo '<link rel="stylesheet" href="/course/format/mashup/script/contextmenu/jquery.contextMenu.css">'.PHP_EOL;
 echo '<link rel="stylesheet" type="text/css" href="/course/format/mashup/style/style.css">'.PHP_EOL;
 
+//echo '<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />'; - testing for prgress bar
+
 $mashup = new Mashup();
 print($mashup->initUi());
 ?>
