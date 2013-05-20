@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="mashup_page" COMMENT="A moodle mashup page" NEXT="moodle_widget">
+    <TABLE NAME="mashup_page" COMMENT="A moodle mashup page" NEXT="mashup_widget">
       <FIELDS>
         <FIELD NAME="entity_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="page_name"/>
         <FIELD NAME="page_name" TYPE="char" LENGTH="45" NOTNULL="true" DEFAULT="Main" SEQUENCE="false" COMMENT="The name given to this mashup page" PREVIOUS="entity_id" NEXT="course_id"/>
