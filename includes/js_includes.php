@@ -18,4 +18,6 @@ echo '<script type="text/javascript" src="/course/format/mashup/script/json/json
 
 echo '<script type="text/javascript" src="/course/format/mashup/script/mashup_properties.js"></script>'.PHP_EOL;
 echo '<script type="text/javascript" src="/course/format/mashup/script/mashupengine.js"></script>'.PHP_EOL;
+
+//echo '<script type="text/javascript" src="'.$CFG->mashup_shindig_url.'gadgets/js/shindig-container:rpc.js?c=1&debug=1"></script>';
 ?>

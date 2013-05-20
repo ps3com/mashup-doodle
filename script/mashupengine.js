@@ -467,7 +467,7 @@ var MashupEngine = (function() {
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="import_page" class="ui-corner-all" tabindex="-1" role="menuitem">Import page</a></li>';
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="export_page" class="ui-corner-all" tabindex="-1" role="menuitem">Export page</a></li>';
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" class="browseW3CWidgets ui-corner-all" tabindex="-1" role="menuitem">Browse W3C Widgets</a></li>';
-			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_gadget" class="addGadget ui-corner-all" tabindex="-1" role="menuitem">Add Open Social Gadget</a></li>';
+			//menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_gadget" class="addGadget ui-corner-all" tabindex="-1" role="menuitem">Add Open Social Gadget</a></li>';
 			menuHTML+='		</ul>';
 			menuHTML+='	</li>';
 			menuHTML+='</ul>';
