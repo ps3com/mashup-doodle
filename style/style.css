@@ -1,22 +1,49 @@
 /* PAGE tabs*/
 
- 	.dialog select option, .dialog label, .dialog input { display:block; }
- 	.dialog select { margin-top: 0.3em; }
-	.dialog label { margin-top: 0.5em; }
-	.dialog input, .dialog select, .dialog select option, .dialog textarea { width: 95%; }
-	#pages { 
-		margin-top: 1em; 
-		height : 100%;
-		min-height:400px;
-	}
-	#pages li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
-	/**add_page { cursor: pointer; }**/
+.dialog select option, .dialog label, .dialog input { 
+	display:block;
+}
+
+.dialog select { 
+	margin-top: 0.3em; 
+}
+
+.dialog label { 
+	margin-top: 0.5em; 
+}
+
+.dialog input, .dialog select, .dialog select option, .dialog textarea { 
+	width: 95%; 
+}
+
+#pages { 
+	margin-top: 1em; 
+	height : 100%;
+	min-height:400px;
+}
+
+#pages li .ui-icon-close { 
+	float: left; 
+	margin: 0.4em 0.2em 0 0; 
+	cursor: pointer;
+}
+
+/**add_page { cursor: pointer; }**/
 
 #mashup-content{
 	height : 100%;
 	min-height:400px;
 	/**border: 1px solid red;**/
 }
+
+.ui-dialog .ui-dialog-titlebar-close span {
+    display: block;
+    /**margin: 0px;**?
+    /**border: 1px solid red;**/
+    left:-1px;
+    top:-1px;
+}
+
 
 .no-close .ui-dialog-titlebar-close {
 	display: none;
@@ -38,7 +65,6 @@
 	top: 0px;
 	position: fixed;
 }
-
 
 .noWidgetsFound {
 	text-align:center;
