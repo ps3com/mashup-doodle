@@ -14,6 +14,7 @@ if (!has_capability('moodle/course:manageactivities', $context)) {
 }
 else{
 	if (isset($_GET['url']) && isset($_GET['widgetType']) && isset($_GET['courseId'])  && isset($_GET['pageId']) ){	
+		$errors="";
 		$errorFlag = false;
 		$json = array();
 		$url = $_GET['url'];
@@ -26,22 +27,26 @@ else{
 		$pageId = $_GET['pageId'];
 		if($widgetType == 2){
 			$shindigconnection = new ShindigConnectorService($CFG->mashup_shindig_url);
-			$resp = $shindigconnection->getMetadata($url);			
-			//if(strpos($resp, "Error") !== false){
-			if(!strncmp($resp, "Error", strlen("Error"))){
+			$metadataTitle = $shindigconnection->parseMetadataForTitle($url);
+			if(!strncmp($metadataTitle, "Error", strlen("Error"))){
+				$errors .= $metadataTitle;
 				$errorFlag = true;
 			}else{
-				$title = $resp;
+				$title = $metadataTitle;
 			}
 		}
 		if(!$errorFlag){
 			$moodleWidget = new MoodleWidget(null, $courseId, $url, $title, $widgetType, 1, 1, 1, 1, $pageId);
 			$instanceGenerator = new InstanceGenerator($moodleWidget->serialize());
-			$instance = $instanceGenerator->getWidgetInstance($moodleWidget);
+			$instance = $instanceGenerator->getWidgetInstance($moodleWidget, $courseId);
 			$moodleWidget->setUrl($instance->getUrl());
 			array_push($json, $moodleWidget->toJson());
+			echo json_encode($json);
 		}
-		echo json_encode($json);
+		else{
+			echo $errors;
+		}
+		
 	}
 }	
 ?>
