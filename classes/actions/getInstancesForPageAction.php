@@ -10,15 +10,14 @@ if (isset($_GET['pageId']) ){
 	$json = array();	
 	$pageId = $_GET['pageId'];
 	$mashupDatabaseHelper = new MashupDatabaseHelper();
-	$pageLayout = $mashupDatabaseHelper->getLayoutForPage($pageId);
-	
+	$pageLayout = $mashupDatabaseHelper->getLayoutForPage($pageId);	
 	$layoutData = array('layout' => $pageLayout);	
 	array_push($json, $layoutData);
 	$persistedWidgets = $mashupDatabaseHelper->getWidgetsForPage($pageId);
 	foreach ($persistedWidgets as $persistedWidget){
-		$instanceGenerator = new InstanceGenerator($persistedWidget->getId());
+		$instanceGenerator = new InstanceGenerator();
 		try{	
-			$instance = $instanceGenerator->getWidgetInstance($persistedWidget);
+			$instance = $instanceGenerator->getWidgetInstance($persistedWidget, $id);
 			if($instance instanceof WidgetInstance){
 				$persistedWidget->setUrl($instance->getUrl());
 				array_push($json, $persistedWidget->toJson());
