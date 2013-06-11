@@ -7,7 +7,6 @@ $courseId = required_param('courseId', PARAM_INT);
 require_login($courseId);
 
 $PAGE->set_url('/course/format/mashup/classes/actions/importOmdlAction.php', array('id' => $courseId));
-
 // set permissions to prevent students etc to execute this
 $course = $PAGE->course;
 $context = get_context_instance(CONTEXT_COURSE, $course->id);
@@ -25,8 +24,7 @@ else{
 			6=>'Missing a temporary folder',
 			7=>'Invalid File format',
 			8=>'File must end with .xml suffix.'
-	);
-	
+	);	
 	
 	if ($_FILES["omdlFile"]["error"] > 0){	
 		echo "Error: " . $uploadErrors[$_FILES["omdlFile"]["error"]];
