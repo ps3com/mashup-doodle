@@ -28,6 +28,8 @@ Prequisites
 
 	ProxyPass /rpc http://localhost:8080/rpc
 	ProxyPassReverse /rpc http://localhost:8080/rpc
+	
+	...replacing localhost with your public IP or Domain name
 
 Getting Started
 ---------------
@@ -62,4 +64,5 @@ Getting Started
 	
 (8) Create a new course
 
-	As a course creator/teacher create a new course based on the "mashup" course format.
+	If you haven't already, as the admin user create a new user with course creator privillages
+	As a course creator/teacher create a new course. Choose the "mashup" course format in the setup page.
