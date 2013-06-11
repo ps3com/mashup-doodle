@@ -5,7 +5,7 @@ A mashup type course format for moodle which allows a teacher to define pages of
 
 ![Alt text](screenshot.jpg "Mashup screenshot")
 
-At present the mashup format only supports W3C widgets, but there is further scope to support other types, such as Open Social gadgets.
+At present the mashup format only supports W3C widgets, but there is further scope to support other types, such as Open Social gadgets. [TODO - describe Opensocial setup]
 
 Getting Started
 ---------------
