@@ -47,7 +47,10 @@ Getting Started
 	
 (3) Check out this project and put everything in the folder you just created
 
-(4) Start your tomcat server with your deployed instances of Wookie and Shindig
+(4) Configure your Wookie and Shindig applications
+
+	For Wookie see here (http://wookie.apache.org/docs/developer/running.html)	
+	Next run your tomcat server with your deployed instances of Wookie and Shindig
 
 (6) Startup Moodle
 
