@@ -67,5 +67,5 @@ Getting Started
 	
 (8) Create a new course
 
-	If you haven't already, as the admin user create a new user with course creator privillages
+	If you haven't already, as the admin user create a new user with course creator privilages
 	As a course creator/teacher create a new course. Choose the "mashup" course format in the setup page.
