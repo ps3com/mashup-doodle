@@ -3612,11 +3612,8 @@
 */
     
     fn.resize_widget_dimensions = function(options) {
-    	console.log("resized:@"+this.options.widget_base_dimensions[0]);//paul
+    	//console.log("resized:@"+this.options.widget_base_dimensions[0]);//paul
 		$('head [generated-from="gridster"]:not(:last)').remove();
-		
-		
-		
         if (options.widget_margins) {
           this.options.widget_margins = options.widget_margins;
         }
