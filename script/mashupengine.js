@@ -19,20 +19,33 @@ var MashupEngine = (function() {
         var currentPage;
         var currentLayout;
         
+        function wasSuccessfulReply(data){
+        	var rWarning="Warning";
+        	var rError="Error";
+        	var rFatal="Fatal";
+        	if(data.substring(0, rWarning.length) === rWarning || data.substring(0, rError.length) === rError || data.substring(0, rFatal.length) === rFatal){
+        		return false;
+        	}
+        	else{
+        		return true;
+        	}
+        }
+        
         function importOMDLPage(){
         	$pageFormImport = $("#pageFormImport");        	
             if ($.browser.msie == true) {
                 alert("import is not supported in your browser");
             }
             else {
-               // if ($pageFormImport.valid()) {
-                    $pageFormImport.get(0).setAttribute('action', MashupEngine.importOMDLPageUrl + "?courseId="+MashupEngine.courseId);
-                    document.getElementById('pageFormImport').onsubmit = function () {
-                        document.getElementById('pageFormImport').target = 'file_upload_frame';
-                        document.getElementById("file_upload_frame").onload = processFileUploadResult;
-                    }
-                    $pageFormImport.submit();
+            	try{
+            		document.getElementById('pageFormImport').action = MashupEngine.importOMDLPageUrl + "?courseId="+MashupEngine.courseId;
+                    document.getElementById('pageFormImport').target = 'file_upload_frame';
+                    document.getElementById("file_upload_frame").onload = processFileUploadResult;
+                    document.getElementById('pageFormImport').submit();
 
+                    /*
+                     // commented this out for now as its causing the file_upload_frame problems onload
+                     // meaning the data isnt being returned to the listening function
                 	$("#progressbar").progressbar({
                 		value: false
                 	});
@@ -42,17 +55,21 @@ var MashupEngine = (function() {
                 		height: 80,
                 		modal: true
                 	});
+                	*/
             	//}
+            	}catch(err){
+            		alert(err);
+            	};
             }
         }
 
         function processFileUploadResult() {
         	var data = $('#file_upload_frame').contents().find('html').text();
-        	$( "#please-wait" ).dialog("close");
-        	$( "#progressbar" ).progressbar("destroy");
+        	//$( "#please-wait" ).dialog("close");
+        	//$( "#progressbar" ).progressbar("destroy");
         	
             try{
-            	if(data.startsWith("Warning") || data.startsWith("Error") || data.startsWith("Fatal")){
+            	if(!wasSuccessfulReply(data)){
             		alert(data);
             	}
             	else{
@@ -62,13 +79,13 @@ var MashupEngine = (function() {
 					var li =  getTabHtml(id, label);
 					$("#pages").find( ".ui-tabs-nav" ).append( li );
 					$("#pages").append( "<div id='" + id + "'></div>" );
-					$("#pages").tabs( "refresh" );		
+					$("#pages").tabs( "refresh" );
 					var index = $("#pages").find( ".ui-tabs-nav li#"+id ).parent().index();
 					$("#pages").tabs("option", "active", index);
-					
             	}
             }catch(err){
-            	alert("Unable to successfully import page");
+            	console.log(err);
+            	alert("Unable to import page successfully");
             }
         }
         
@@ -77,10 +94,28 @@ var MashupEngine = (function() {
         }
         
         function getWidgetsForPage(){
+        	 rave.resetManagedHub();
+        	 $("#progressbar").progressbar({
+         		value: false
+         	 });
+
+         	$("#please-wait").dialog({
+         		dialogClass: "no-close",
+         		height: 80,
+         		modal: true
+         	});
+        	 
 			$.get(MashupEngine.getWidgetsForPageUrl, { pageId: currentPage, courseId: MashupEngine.courseId})
 			.done(function(data) {
-				var widgets = jQuery.parseJSON(data);
-				generateWidgetsForPage(widgets, currentPage);
+				$( "#please-wait" ).dialog("close");
+	        	$( "#progressbar" ).progressbar("destroy");
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{
+            		var widgets = jQuery.parseJSON(data);
+            		generateWidgetsForPage(widgets, currentPage);
+            	}
 			})
 			.fail(function(err) { 
 				console.log(err);
@@ -89,6 +124,7 @@ var MashupEngine = (function() {
         }
         
         function generateWrapperForSingleWidget(widget){
+        	
         	var layout = "";
        		layout+='<li id="widget-li-'+widget['id']+'" data-localident="'+widget['id']+'" data-row="'+widget['dataRow']+'" data-col="'+widget['dataCol']+'" data-sizex="'+widget['dataSizeX']+'" data-sizey="'+widget['dataSizeY']+'">';
        		layout+='    <div class="wrapper" id="widget-wrapper-'+widget['id']+'">';
@@ -97,8 +133,8 @@ var MashupEngine = (function() {
        		layout+='            <div class="right" style="height:16px;width:16px;" id="contextmenu-'+widget['id']+'"><img src="/course/format/mashup/images/calendar.png"/></div>';
        		layout+='            <div class="center" style="text-align:center;"><h2>'+widget['title']+'</h2></div>';
        		layout+='        </div>';
-       		layout+='        <div class="widgetwrapper">';
-       		layout+='            <iframe class="vis" src="'+widget['url']+'"></iframe>';
+       		layout+='        <div class="widgetwrapper" id="widget-'+widget['id']+'-body">';
+       		//layout+='            <iframe class="vis" src="'+widget['url']+'"></iframe>';
        		layout+='        </div>';
        		layout+='    </div>';
        		layout+='</li>';
@@ -108,22 +144,30 @@ var MashupEngine = (function() {
         function generateWidgetsForPage(widgets, currentPage){
         	var gridsterLayout = '<div class="gridster" style="width:100%" data-mashup-cols="'+widgets[0].layout+'">';
         	widgets.shift(); //remove the layout code
-        	gridsterLayout+='<ul>';
-        	
+        	gridsterLayout+='<ul></ul></div>';
+        	$('#page-'+currentPage).append(gridsterLayout);
+        	      	
 	        $.each(widgets, function() {      		
-	        	gridsterLayout += generateWrapperForSingleWidget(this);
+	        	res = generateWrapperForSingleWidget(this);
+	        	$(".gridster ul").append(res);
+	        	containerMetadata = jQuery.parseJSON(this['url']);
+	        	console.log(containerMetadata);
+	        	rave.registerWidget(1, containerMetadata);
 	        });
         	
+	        var widgetFoundText="";
 	        if(MashupEngine.canEdit){
-	        	gridsterLayout+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="/course/format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
+	        	widgetFoundText+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="/course/format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
 	        }
 	        else{
-	        	gridsterLayout+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1>You do not have permission to add new widgets to this page.</h1></div>';
+	        	widgetFoundText+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1>You do not have permission to add new widgets to this page.</h1></div>';
 	        }
-        	gridsterLayout+='</ul>';
-           	gridsterLayout+='</div>';
-        	$('#page-'+currentPage).append(gridsterLayout);
+	        
+        	$('#page-'+currentPage).append(widgetFoundText);
+        	        	        	
 			initGridster();
+			initContainer();
+			
 			if(widgets.length<1){
 				registerBrowseW3C("#pageAddWidget"+currentPage);
 				$("#noWidgetsFound-"+currentPage).show();
@@ -135,45 +179,60 @@ var MashupEngine = (function() {
 			var pageLayout = $('select#page_layout option:selected').val() || 1;
 			$.get(MashupEngine.addNewPageUrl, { pageName: title, pageLayout: pageLayout, courseId: MashupEngine.courseId})
 			.done(function(data) {
-				var page = jQuery.parseJSON(data);
-				var label = page['title'];
-				var id = "page-" + page['id'];
-				var li =  getTabHtml(id, label);
-				$("#pages").find( ".ui-tabs-nav" ).append( li );
-				$("#pages").append( "<div id='" + id + "'></div>" );
-				$("#pages").tabs( "refresh" );
-				var index = $("#pages").find( ".ui-tabs-nav li#"+id ).parent().index();
-				$("#pages").tabs("option", "active", index);
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{
+					var page = jQuery.parseJSON(data);
+					var label = page['title'];
+					var id = "page-" + page['id'];
+					var li =  getTabHtml(id, label);
+					$("#pages").find( ".ui-tabs-nav" ).append( li );
+					$("#pages").append( "<div id='" + id + "'></div>" );
+					$("#pages").tabs( "refresh" );
+					var index = $("#pages").find( ".ui-tabs-nav li#"+id ).parent().index();
+					$("#pages").tabs("option", "active", index);
+            	}
 			})
 			.fail(function(err) { 
 				console.log(err);
-				alert("Error adding new page:");
+				alert("Error adding new page.");
 			});			
         }
         
         function getPagesForCourse(){
 			$.get(MashupEngine.getPagesUrl, {courseId: MashupEngine.courseId})
 			.done(function(data) {
-				var pages = jQuery.parseJSON(data);
-				if(pages != null){
-					generatePageLayout(pages);
-				}
-				else{
-					alert("Error retrieving page data. Data is null.");
-				}
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{				
+					var pages = jQuery.parseJSON(data);
+					if(pages != null){
+						generatePageLayout(pages);
+					}
+					else{
+						alert("Error retrieving page data. Data is null.");
+					}
+            	}
 			})
 			.fail(function(err) { 
 				console.log(err);
-				alert("Error retrieving page data. Ajax problem.");
+				alert("Error retrieving page data.");
 			});	
         }
         
 		function removePage(pageId){
 			$.post(MashupEngine.removePageUrl, { courseId: MashupEngine.courseId, pageId: pageId})
-			.done(function(data) {				
-				console.log(data);
-				$("#page-" + pageId ).remove();
-				$("#pages").tabs( "refresh");
+			.done(function(data) {
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{
+					console.log(data);
+					$("#page-" + pageId ).remove();
+					$("#pages").tabs( "refresh");
+            	}
 			})
 			.fail(function(err) {
 				console.log("Error deleting page");
@@ -183,14 +242,19 @@ var MashupEngine = (function() {
                 
 		function removeWidgetFromPage(widgetId){
 			$.post(MashupEngine.removeWidgetUrl, { courseId: MashupEngine.courseId, widgetId: $('#'+widgetId).attr('data-localident')})
-			.done(function(data) {	
-				gridster.remove_widget( $('#'+widgetId) );
-				//console.log(data);
-				serializeGrid();
-				if($('#page-'+currentPage+' ul li').size()<2){
-					$("#noWidgetsFound-"+currentPage).show();
-					registerBrowseW3C("#pageAddWidget"+currentPage);
-				}
+			.done(function(data) {
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{
+					gridster.remove_widget( $('#'+widgetId) );
+					//console.log(data);
+					serializeGrid();
+					if($('#page-'+currentPage+' ul li').size()<2){
+						$("#noWidgetsFound-"+currentPage).show();
+						registerBrowseW3C("#pageAddWidget"+currentPage);
+					}
+            	}
 			})
 			.fail(function(err) {
 				console.log("Error deleting widget");
@@ -203,20 +267,33 @@ var MashupEngine = (function() {
 			if(url.length>1){
 				$.get(MashupEngine.newWidgetInstanceUrl, { url: url, title: "", widgetType: 2, courseId: MashupEngine.courseId, pageId:currentPage})
 				.done(function(data) {
-					var widgets = jQuery.parseJSON(data);
-					if(widgets.length>0){
-						$("#noWidgetsFound-"+currentPage).hide();
-						var markup = generateWrapperForSingleWidget(widgets[0]);
-						gridster.add_widget(markup, 1, 1, 1 ,1);
-						serializeGrid();
-					}else{
-						alert("There was a problem adding this gadget ("+url+")");
+					$( "#gadget_url" ).val("");
+					if(!wasSuccessfulReply(data)){
+	            		alert(data);
+	            	}
+					else{
+						var widgets = jQuery.parseJSON(data);
+						if(widgets.length>0){
+							$("#noWidgetsFound-"+currentPage).hide();
+					        $.each(widgets, function() {      		
+					        	res = generateWrapperForSingleWidget(this);
+					        	//$(".gridster ul").append(res);
+					        	gridster.add_widget(res, 1, 1, 1 ,1);
+					        	containerMetadata = jQuery.parseJSON(this['url']);
+					        	rave.registerWidget(1, containerMetadata);
+					        	//alert("id3:"+containerMetadata['regionWidgetId']);
+					        	rave.renderNewWidget(containerMetadata['regionWidgetId'], true, null);
+					        	serializeGrid();
+					        });
+					        
+						}else{
+							alert("There was a problem adding this gadget ("+url+")");
+						}
 					}
 				})
 				.fail(function(err) { 
 					console.log(err);
 					alert("Error adding new widget:");
-					
 				});			
 			}
 			else{
@@ -227,13 +304,26 @@ var MashupEngine = (function() {
 		function addNewWidgetToPage(widgetId, widgetTitle, widgetType){
 			$.get(MashupEngine.newWidgetInstanceUrl, { url: widgetId, title: widgetTitle, widgetType: widgetType, courseId: MashupEngine.courseId, pageId:currentPage})
 			.done(function(data) {
-				var widgets = jQuery.parseJSON(data);
-				if(widgets.length>0){
-					$("#noWidgetsFound-"+currentPage).hide();
-				}
-				var markup = generateWrapperForSingleWidget(widgets[0]);
-				gridster.add_widget(markup, 1, 1, 1 ,1);
-				serializeGrid();
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{
+					//alert(data);
+					var widgets = jQuery.parseJSON(data);
+					if(widgets.length>0){
+						$("#noWidgetsFound-"+currentPage).hide();
+					}
+	
+			        $.each(widgets, function() {      		
+			        	res = generateWrapperForSingleWidget(this);
+			        	//$(".gridster ul").append(res);
+			        	gridster.add_widget(res, 1, 1, 1 ,1);
+			        	containerMetadata = jQuery.parseJSON(this['url']);
+			        	rave.registerWidget(1, containerMetadata);
+			        	rave.renderNewWidget(widgetId, true, null);
+			        	serializeGrid();
+			        });
+            	}
 				$("#w3cBrowseForm").dialog("close");
 			})
 			.fail(function(err) { 
@@ -245,14 +335,11 @@ var MashupEngine = (function() {
 
 		function serializeGrid(){
 			$gridsterLayout = gridster.serialize(); // NEED TO COMPARE FIRST - ONLY UPDATE RECORDS NEEDED
-			
+			/*
 			$gridsterLayout.forEach(function(widgat) {
 			    console.log("@@ "+widgat.id + ":" + widgat.col + ":" + widgat.row+ ":" + widgat.sizex + ":" + widgat.sizey);
 			});
-			
-			//console.log("overlapped:"+gridster.get_widgets_overlapped().length);
-			//var available = gridster.next_position(1,1);
-			//console.log("next:"+ available.row + " " + available.col);
+			 */
 			var jsonData = JSON.stringify($gridsterLayout);
 			
 			$.post(MashupEngine.updatePositionsUrl, { courseId: MashupEngine.courseId, dataEnv: jsonData})
@@ -266,6 +353,12 @@ var MashupEngine = (function() {
 		}
 		
 		function showFullscreen(originalId){
+			// TODO - move this logic down to the container level
+			var wrapperId = originalId.replace("li-","");
+			wrapperId +="-body";
+			var containerHeight = $('#'+wrapperId+' span iframe').css('height');
+			$('#'+wrapperId+' span iframe').css('height', '100%');
+			// TODO
 			var current = $('#'+originalId).zIndex();
 			if(current>10){
 				// minimize
@@ -280,10 +373,12 @@ var MashupEngine = (function() {
 			$('#'+originalId).toggleClass("sDashboardWidgetContainerMaximized");
 		}	
 	
+		/*
+		 * Not used for now as the DND bits of gridster seem to misbehave when widgets span multiple columns
+		 */
 		function modifyWidgetDimension(originalId, action){			
 			$initialSizeX = parseInt($('#'+originalId).attr('data-sizex'));
 			$initialSizeY = parseInt($('#'+originalId).attr('data-sizey'));
-			//alert("before:"+ $initialSizeX +":"+$initialSizeY);
 			switch (action)
 			{
 			case 1: // inc height
@@ -301,8 +396,44 @@ var MashupEngine = (function() {
 			} 
 			$initialSizeX = parseInt($('#'+originalId).attr('data-sizex'));
 			$initialSizeY = parseInt($('#'+originalId).attr('data-sizey'));
-			//alert("after::"+ $initialSizeX +":"+$initialSizeY);
 			serializeGrid();
+		}
+		
+		function createPageMenus(){
+			$.contextMenu({
+				selector: '.pageMenu',
+				trigger: 'left',
+				callback: function(key, options) {
+					/*
+					 				//$("#confirmDeletePageDialog").dialog("open"); //TODO CONFIRM DIALOG FOR PAGE DELETE
+				//var tabCount = $("#pages").tabs("length");
+				var tabCount = $('#pages >ul >li').size();
+				// dont delete a page if its the only one
+				if(tabCount>1){
+					var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+					removePage(panelId.replace("page-",""));			
+				}else{
+					alert("You must have at least one page.");
+				}
+					 */
+				},
+				items: {
+					"edit": {"name": "edit", "icon": "edit"},
+					//"serialize": {"name": "Serialize"},
+					"delete": {"name": "delete", "icon": "delete", disabled: !MashupEngine.canEdit}
+					/*
+					,"fold1": {
+						"name": "Dimensions", 
+						"items": {
+							"incheight": {"name": "Increase height", "icon": "arrow-090-medium"},
+							"decheight": {"name": "Decrease height", "icon": "arrow-270-medium", disabled: !MashupEngine.canEdit},
+							"incwidth": {"name": "Increase width", "icon": "arrow-000-medium"},
+							"decwidth": {"name": "Decrease width", "icon": "arrow-180-medium"},
+						}
+					}
+					*/
+				}
+			});
 		}
 		
 		function createContextMenus(){	
@@ -415,6 +546,8 @@ var MashupEngine = (function() {
 	        importHTML+='        </form>';
 			importHTML+='</div>';
 			$('#'+MashupEngine.htmlParent).append(importHTML);
+			//document.getElementById('pageFormImport').target = 'file_upload_frame';
+			//document.getElementById('pageFormImport').target = '_new';
 			
 			var addPageHTML='';
 			addPageHTML+='<div id="addPageDialog" class="dialog" title="Add Page" style="display:none;">';
@@ -467,7 +600,7 @@ var MashupEngine = (function() {
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="import_page" class="ui-corner-all" tabindex="-1" role="menuitem">Import page</a></li>';
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="export_page" class="ui-corner-all" tabindex="-1" role="menuitem">Export page</a></li>';
 			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" class="browseW3CWidgets ui-corner-all" tabindex="-1" role="menuitem">Browse W3C Widgets</a></li>';
-			//menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_gadget" class="addGadget ui-corner-all" tabindex="-1" role="menuitem">Add Open Social Gadget</a></li>';
+			menuHTML+='			<li class="ui-menu-item" role="presentation"><a href="#" id="add_gadget" class="addGadget ui-corner-all" tabindex="-1" role="menuitem">Add Open Social Gadget</a></li>';
 			menuHTML+='		</ul>';
 			menuHTML+='	</li>';
 			menuHTML+='</ul>';
@@ -531,6 +664,7 @@ var MashupEngine = (function() {
         function getTabHtml(id, label){
         	if(MashupEngine.canEdit){
         		var tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove page</span></li>";
+        		//var tabTemplate = "<li><a style='' href='#{href}'>#{label}</a> <span style='float:left;' class='pageMenu ui-icon ui-icon-wrench' role='presentation'>&nbsp;</span></li>";
         		li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) );
         		return li;
         	}
@@ -544,9 +678,10 @@ var MashupEngine = (function() {
 		function initPages(){
 			var tabs = $("#pages").tabs(					
 					{selected: 0,
-					    select: function(event, ui) {
+					    activate: function(event, ui) {
 					        $('.gridster').remove();
-					        var pageId = ui.tab.attributes[0].nodeValue.replace("#page-","");
+					        var pageId = ui.newPanel.selector.replace("#page-","");
+					        //var pageId = ui.tab.attributes[0].nodeValue.replace("#page-","");
 					        currentPage = pageId;
 					        getWidgetsForPage();	       
 					    }
@@ -556,7 +691,8 @@ var MashupEngine = (function() {
 			// close icon: removing the tab on click
 			tabs.delegate( "span.ui-icon-close", "click", function() {
 				//$("#confirmDeletePageDialog").dialog("open"); //TODO CONFIRM DIALOG FOR PAGE DELETE
-				var tabCount = $("#pages").tabs("length");
+				//var tabCount = $("#pages").tabs("length");
+				var tabCount = $('#pages >ul >li').size();
 				// dont delete a page if its the only one
 				if(tabCount>1){
 					var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
@@ -703,6 +839,19 @@ var MashupEngine = (function() {
 			}
 		}
 		
+		function initContainer(){
+			if(!MashupEngine.canEdit){
+				rave.initPageEditorStatus(true);
+			}else{
+				rave.initPageEditorStatus(false);
+			}
+			rave.initPageEditorStatus(true);
+			rave.initProviders();
+			rave.initWidgets();
+			rave.initUI();
+			rave.runOnPageInitializedHandlers();
+		}
+		
 		function initParent(){
 			var data= '<div style="height:100%;" id="pages"><ul></ul></div>';
 			$('#'+MashupEngine.htmlParent).append(data);
@@ -717,6 +866,7 @@ var MashupEngine = (function() {
         	initDialogs();
         	getPagesForCourse();
 			createContextMenus();
+			createPageMenus();
 		}
         return {
             init: init,
