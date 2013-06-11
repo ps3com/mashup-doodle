@@ -14,7 +14,7 @@ if (!has_capability('moodle/course:manageactivities', $context)) {
 else{
 	if (isset($_GET['pageName']) && isset($_GET['pageLayout']) && isset($_GET['courseId']) ){
 		//$page="";
-		$pageName = $_GET['pageName'];
+		$pageName =  htmlspecialchars($_GET['pageName'], ENT_QUOTES);
 		$pageLayout = $_GET['pageLayout'];
 		$courseId = $_GET['courseId'];
 		$mashupPage = new MashupPage(null, $pageName, $courseId, $pageLayout);
