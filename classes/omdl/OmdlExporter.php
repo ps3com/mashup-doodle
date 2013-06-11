@@ -106,7 +106,12 @@ class OMDLExporter {
 				$appElement->appendChild($document->createElementNS($ns, OmdlModelUtils::TYPE_ATTRIBUTE, OmdlModelUtils::UNKNOWN_VALUE));
 					
 				$linkElement = $document->createElementNS($ns, OmdlModelUtils::LINK, '');
-				$linkElement->appendChild($document->createAttributeNS($ns, OmdlModelUtils::HREF))->appendChild($document->createTextNode($CFG->mashup_wookie_url.'widgets/'.$widgetInst->getUrl()));
+				if($widgetInst->getWidgetType()==1){
+					$linkElement->appendChild($document->createAttributeNS($ns, OmdlModelUtils::HREF))->appendChild($document->createTextNode($CFG->mashup_wookie_url.'widgets/'.$widgetInst->getUrl()));
+				}
+				else{
+					$linkElement->appendChild($document->createAttributeNS($ns, OmdlModelUtils::HREF))->appendChild($document->createTextNode($widgetInst->getUrl()));
+				}
 				$linkElement->appendChild($document->createAttributeNS($ns, OmdlModelUtils::TYPE_ATTRIBUTE))->appendChild($document->createTextNode($this->getWidgetType($widgetInst)));
 				$linkElement->appendChild($document->createAttributeNS($ns, OmdlModelUtils::aREL))->appendChild($document->createTextNode(OmdlModelUtils::REL_TYPE));
 				$appElement->appendChild($linkElement);
