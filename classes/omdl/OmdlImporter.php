@@ -137,11 +137,11 @@ class OMDLImporter {
 				}
 			}
 			else if($widgetReference->getWidgetTypeFromFormatType() == OmdlModelUtils::APP_TYPE_OPENSOCIAL){
-				/*
+				
 				$errorFlag = false;
 				$title = "unknown";
 				$shindigconnection = new ShindigConnectorService($CFG->mashup_shindig_url);
-				$resp = $shindigconnection->getMetadata($widgetReference->getWidgetIdentifier());
+				$resp = $shindigconnection->parseMetadataForTitle($widgetReference->getWidgetIdentifier());				
 				if(!strncmp($resp, "Error", strlen("Error"))){
 					$errorFlag = true;
 				}
@@ -152,10 +152,10 @@ class OMDLImporter {
 					$moodleWidget = new MoodleWidget(null, $this->courseId, $widgetReference->getWidgetIdentifier(), $title, 2, $rowCount, $column, 1, 1, $pageId);
 					$moodleWidget->serialize();						
 				}
-				*/
+				
 			}
 			else{
-				//
+				// could implement other widget containers here
 			}	
 			$rowCount++;
 		}
