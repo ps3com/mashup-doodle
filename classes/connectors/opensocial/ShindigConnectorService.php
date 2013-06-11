@@ -19,35 +19,82 @@ class ShindigConnectorService implements ShindigConnectorServiceInterface {
 		$instance = new WidgetInstance($CFG->mashup_shindig_url."gadgets/ifr?url=".$persistedWidget->getUrl(), "guid", $persistedWidget->getTitle(), 200, 400);
 		return $instance;
 	}
-		
-	public function getMetadata($url) {
-		try {
-			$requestUrl = $this->shindigContextPath.'gadgets/metadata';
-			$request = '{
-				"context":{"country":"GB","language":"en","view":"default","container":"default"},
-				"gadgets":[
-				{"url":"'.$url.'","moduleId":1}
-				]
+	
+	public function parseMetadataForTitle($url){
+		$metadata = $this->getMetadata($url, false);
+		if(isset($metadata['error'])){
+			if(isset($metadata['error']['message'])){
+				$title = 'Error: '.$metadata['error']['message'];
+			}
+			else{
+				$title = 'Error: Unspecified Problem obtaining metadata for '.$url;
+			}
+		}
+		else if(isset($metadata['modulePrefs']['title'])){
+			$title = $metadata['modulePrefs']['title'];
+		}
+		else{
+			$title = "unknown gadget";
+		}
+		return $title;
+	}
+	
+	public function oldGetMetadata($url, $asJson=true) {
+		$requestUrl = $this->shindigContextPath.'gadgets/metadata';
+		$request = '{
+			"context":{"country":"GB","language":"en","view":"default","container":"default"},
+			"gadgets":[
+			{"url":"'.$url.'","moduleId":1}
+			]
 			}';
-			
+		$response = $this->do_request($requestUrl, $request, 'POST', "Content-Type: application/json-rpc");
+		if($response->getStatusCode() != 200){
+			throw new Exception("Error: ".$requestUrl);
+		}
+		$responseAsArray = json_decode($response->getResponseText(), true);
+		return $responseAsArray;
+	}
+		
+	public function getMetadata($url, $asJson=true) {
+		try {
+			/*
+			 $requestUrl = $this->shindigContextPath.'gadgets/metadata';
+			$request = '{
+			"context":{"country":"GB","language":"en","view":"default","container":"default"},
+			"gadgets":[
+			{"url":"'.$url.'","moduleId":1}
+			]
+			}';
+			*/
+			$requestUrl = $this->shindigContextPath.'/rpc';
+			//          [{"id":"gadgets.metadata","method":"gadgets.metadata","params":{"groupId":"@self","ids":["http://www.ohloh.net/p/521520/widgets/project_factoids.xml"],"container":"default","userId":"@viewer","fields":["iframeUrls","modulePrefs.*","needsTokenRefresh","userPrefs.*","views.preferredHeight","views.preferredWidth","expireTimeMs","responseTimeMs"]}}]
+			$request = '[{"id":"gadgets.metadata","method":"gadgets.metadata","params":{"groupId":"@self","ids":["'.$url.'"],"container":"default","userId":"@viewer","fields":["iframeUrls","modulePrefs.*","needsTokenRefresh","userPrefs.*","views.preferredHeight","views.preferredWidth","expireTimeMs","responseTimeMs"]}}]';					
 			if(!$this->checkURL($requestUrl)) {
 				throw new Exception("URL for gadget is malformed: ".$requestUrl);
 			}
-			$response = $this->do_request($requestUrl, $request);
+			$response = $this->do_request($requestUrl, $request, 'POST', "Content-Type: application/json-rpc");
 			if($response->getStatusCode() != 200){
 				throw new Exception("Error: ".$requestUrl);
-			} 
-
-			$metaData = json_decode($response->getResponseText(), true);
+			}
+			$responseAsArray = json_decode($response->getResponseText(), true);
+						
+			//			///
+			//$tmps = $responseAsArray[0]["result"][''.$url.'']['iframeUrls']['default'];
+			//$responseAsArray[0]["result"][''.$url.'']['iframeUrls']['default'] = $tmps . '&st=%25st%25';
 			
-			if(isset($metaData["gadgets"][0]["errors"])){
-				return "Error:". $metaData["gadgets"][0]["errors"][0];
+			/////
+			$trimmedResponse = $responseAsArray[0]["result"][''.$url.''];
+			// rave uses this to show the prefs dialog for a widget, but we'll leave it out for now
+			$trimmedResponse['hasPrefsToEdit'] = false;
+			//var_dump($trimmedResponse);
+			$reEncoded = json_encode($trimmedResponse);
+			if($asJson){
+				return $reEncoded;
 			}
 			else{
-				return $metaData["gadgets"][0]["title"];
+				return $trimmedResponse;
 			}
-			
-			
+						
 		} catch (Exception $e) {
 			return "Error:".$e;
 		}
@@ -68,7 +115,7 @@ class ShindigConnectorService implements ShindigConnectorServiceInterface {
 	 * @param String method to use
 	 * @return HTTP_Response new HTTP_Response instance
 	 */
-	private function do_request($url, $data, $method = 'POST')
+	private function do_request($url, $data, $method = 'POST', $header)
 	{
 		if(is_array($data)) {
 			// convert variables array to string:
@@ -78,12 +125,16 @@ class ShindigConnectorService implements ShindigConnectorServiceInterface {
 			}
 			$data = implode('&', $_data);
 		}
+		
 		$params = array('http' => array(
 				'method' => $method,
 				'content' => $data,
 				'timeout' => 30
 		));
-		//}
+  		// add optional headers
+		if(isset($header)){
+			$params['http']['header'] = $header;
+		}
 		$this->setHttpStreamContext($params);
 		$response = @file_get_contents($url, false, $this->getHttpStreamContext());
 	
