@@ -89,7 +89,7 @@ class OmdlInputAdapter {
             }
         }
         else{
-            $this->unknown.add(widgetReference);
+            array_push($this->unknown, $widgetReference);
         }
 	}
 	
