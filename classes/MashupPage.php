@@ -33,6 +33,13 @@ class MashupPage {
 		return $this->id;	
 	}
 	
+	public function reserialize(){
+		if (isset($this->id)){
+			$this->mashupDatabaseHelper->updatePage($this);			
+		}
+		return $this->id;
+	}
+	
 	public function deserialize(){
 		if (isset($this->id)){
 			$persistedPage = $this->mashupDatabaseHelper->getSinglePage($this->id);
@@ -56,6 +63,10 @@ class MashupPage {
 	
 	public function getPageLayout(){
 		return $this->pageLayout;
+	}
+	
+	public function setPageLayout($layout){
+		$this->pageLayout = $layout;
 	}
 }
 ?>
