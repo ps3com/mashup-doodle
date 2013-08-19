@@ -20,10 +20,20 @@ else{
 		$courseId = $_POST['courseId'];
 		$json = $_POST['dataEnv'];
 		$gridsterWidgets = json_decode($json);
+		var_dump($gridsterWidgets);
 		foreach ($gridsterWidgets as $gridsterWidget){
+			/*
 			if(!$mashupDatabaseHelper->updateWidget($gridsterWidget, $courseId)){
 				$result.= $mashupDatabaseHelper->get_error() ."\n";
 			}
+			*/
+			$moodleWidget = new MoodleWidget($gridsterWidget->id);
+			$moodleWidget->deserialize();
+			$moodleWidget->setDataCol($gridsterWidget->col);
+			$moodleWidget->setDataRow($gridsterWidget->row);
+			$moodleWidget->setDataSizeX($gridsterWidget->sizex);
+			$moodleWidget->setDataSizeY($gridsterWidget->sizey);
+			$moodleWidget->reserialize();
 		}
 		echo $result;
 	}
