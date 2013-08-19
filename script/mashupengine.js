@@ -12,6 +12,7 @@ var MashupEngine = (function() {
 	var removeWidgetUrl = null;
 	var newWidgetInstanceUrl = null;
 	var updatePositionsUrl = null;
+	var updatePageUrl = null;
 
 	var layout = (function() {
 		
@@ -67,7 +68,7 @@ var MashupEngine = (function() {
         	var data = $('#file_upload_frame').contents().find('html').text();
         	//$( "#please-wait" ).dialog("close");
         	//$( "#progressbar" ).progressbar("destroy");
-        	
+        	alert(data);
             try{
             	if(!wasSuccessfulReply(data)){
             		alert(data);
@@ -124,17 +125,15 @@ var MashupEngine = (function() {
         }
         
         function generateWrapperForSingleWidget(widget){
-        	
         	var layout = "";
        		layout+='<li id="widget-li-'+widget['id']+'" data-localident="'+widget['id']+'" data-row="'+widget['dataRow']+'" data-col="'+widget['dataCol']+'" data-sizex="'+widget['dataSizeX']+'" data-sizey="'+widget['dataSizeY']+'">';
        		layout+='    <div class="wrapper" id="widget-wrapper-'+widget['id']+'">';
        		layout+='        <div class="widgetmenubar" id="widget-menubar-'+widget['id']+'">';
        		layout+='            <div class="left" style="height:16px;width:16px;"><a href="#" class="min">&nbsp;</a><!--<img src="icons/arrow-stop-090.png"/>--></div>';
-       		layout+='            <div class="right" style="height:16px;width:16px;" id="contextmenu-'+widget['id']+'"><img src="/course/format/mashup/images/calendar.png"/></div>';
+       		layout+='            <div class="right" style="height:16px;width:16px;" id="contextmenu-'+widget['id']+'"><img src="format/mashup/images/calendar.png"/></div>';
        		layout+='            <div class="center" style="text-align:center;"><h2>'+widget['title']+'</h2></div>';
        		layout+='        </div>';
        		layout+='        <div class="widgetwrapper" id="widget-'+widget['id']+'-body">';
-       		//layout+='            <iframe class="vis" src="'+widget['url']+'"></iframe>';
        		layout+='        </div>';
        		layout+='    </div>';
        		layout+='</li>';
@@ -157,7 +156,7 @@ var MashupEngine = (function() {
         	
 	        var widgetFoundText="";
 	        if(MashupEngine.canEdit){
-	        	widgetFoundText+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="/course/format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
+	        	widgetFoundText+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1><a href="#" id="pageAddWidget'+currentPage+'"><img src="format/mashup/images/page_white_add.png"/>&nbsp;Add widgets to this page</a></h1></div>';
 	        }
 	        else{
 	        	widgetFoundText+='<div id="noWidgetsFound-'+currentPage+'" class="noWidgetsFound" style="display:none;"><br/><br/><h1>You do not have permission to add new widgets to this page.</h1></div>';
@@ -172,6 +171,36 @@ var MashupEngine = (function() {
 				registerBrowseW3C("#pageAddWidget"+currentPage);
 				$("#noWidgetsFound-"+currentPage).show();
 			}
+        }
+        
+        function updatePage(){		
+			var title = $( "#tab_title" ).val() || "Main";
+			var pageLayout = $('select#page_layout option:selected').val() || 1;
+			var pageId = $('#pageIdentifier').val();
+			
+			
+			$.get(MashupEngine.updatePageUrl, { pageName: title, pageId: pageId, pageLayout: pageLayout, courseId: MashupEngine.courseId})
+			.done(function(data) {
+				if(!wasSuccessfulReply(data)){
+            		alert(data);
+            	}
+            	else{
+            		
+            		
+					var page = jQuery.parseJSON(data);
+					var label = page['title'];
+					var id = "page-" + page['id'];
+					$oldTitle = $("#pages").find( ".ui-tabs-nav li#z"+id + " a");
+					$oldTitle.text(label);
+					// rebuild page
+					$('.gridster').remove();
+					getWidgetsForPage();
+            	}
+			})
+			.fail(function(err) { 
+				console.log(err);
+				alert("Error adding new page.");
+			});		
         }
         
         function addNewPage(){		
@@ -404,6 +433,31 @@ var MashupEngine = (function() {
 				selector: '.pageMenu',
 				trigger: 'left',
 				callback: function(key, options) {
+					if(key=="delete"){						
+						//$("#confirmDeletePageDialog").dialog("open"); 
+						var tabCount = $('#pages >ul >li').size();
+						// dont delete a page if its the only one
+						if(tabCount>1){
+							var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+							removePage(panelId.replace("page-",""));
+						}else{
+							alert("You must have at least one page.");
+						}
+					}
+					else if(key=="move"){
+						alert(key+" : TODO");
+					}
+					else if(key=="edit"){
+						$('#addPageDialog').dialog('option', 'title', 'Edit Page');
+						var $theAnchor = $("#pages").find( "> ul li#zpage-"+currentPage + " a");
+						$('#tab_title').val($theAnchor.text());
+						// get the current number of columns on this page
+						var cols = $(".gridster").attr('data-mashup-cols');
+						$('#page_layout option')[cols-1].selected = true;						
+						$('#pageIdentifier').val(currentPage);
+						$("#addPageDialog").dialog("open");
+					}
+					
 					/*
 					 				//$("#confirmDeletePageDialog").dialog("open"); //TODO CONFIRM DIALOG FOR PAGE DELETE
 				//var tabCount = $("#pages").tabs("length");
@@ -418,20 +472,9 @@ var MashupEngine = (function() {
 					 */
 				},
 				items: {
-					"edit": {"name": "edit", "icon": "edit"},
-					//"serialize": {"name": "Serialize"},
-					"delete": {"name": "delete", "icon": "delete", disabled: !MashupEngine.canEdit}
-					/*
-					,"fold1": {
-						"name": "Dimensions", 
-						"items": {
-							"incheight": {"name": "Increase height", "icon": "arrow-090-medium"},
-							"decheight": {"name": "Decrease height", "icon": "arrow-270-medium", disabled: !MashupEngine.canEdit},
-							"incwidth": {"name": "Increase width", "icon": "arrow-000-medium"},
-							"decwidth": {"name": "Decrease width", "icon": "arrow-180-medium"},
-						}
-					}
-					*/
+					"edit": {"name": "Edit", "icon": "edit"},
+					"move": {"name": "Move", "icon": "move"},
+					"delete": {"name": "Delete", "icon": "delete", disabled: !MashupEngine.canEdit}
 				}
 			});
 		}
@@ -469,7 +512,7 @@ var MashupEngine = (function() {
 					}    
 				},
 				items: {
-					"fullscreen": {"name": "Full Screen", "icon": "edit"},
+					"fullscreen": {"name": "Full Screen", "icon": "fullscreen"},
 					//"serialize": {"name": "Serialize"},
 					"delete": {"name": "Delete", "icon": "delete", disabled: !MashupEngine.canEdit}
 					/*
@@ -550,7 +593,8 @@ var MashupEngine = (function() {
 			//document.getElementById('pageFormImport').target = '_new';
 			
 			var addPageHTML='';
-			addPageHTML+='<div id="addPageDialog" class="dialog" title="Add Page" style="display:none;">';
+			//addPageHTML+='<div id="addPageDialog" class="dialog" title="Add Page" style="display:none;">';
+			addPageHTML+='<div id="addPageDialog" class="dialog" title="" style="display:none;">';
 			addPageHTML+='	<form>';
 			addPageHTML+='		<fieldset class="ui-helper-reset">';
 			addPageHTML+='			<label for="tab_title">Title</label>';
@@ -562,6 +606,7 @@ var MashupEngine = (function() {
 			addPageHTML+='				<option value="3">Three columns</option>';
 			addPageHTML+='				<option value="4">Four columns</option>';
 			addPageHTML+='			</select>';
+			addPageHTML+='			<input id="pageIdentifier" type="hidden" value=""></input>';
 			addPageHTML+='		</fieldset>';
 			addPageHTML+='	</form>';
 			addPageHTML+='</div>';
@@ -655,7 +700,7 @@ var MashupEngine = (function() {
         	
         	// do the first page
         	pageId = pages[0]['id'];
-        	//layout = pages[0]['pageLayout'];
+        	layout = pages[0]['pageLayout'];
         	currentPage = pageId;
         	getWidgetsForPage();
         	initPages();
@@ -663,8 +708,8 @@ var MashupEngine = (function() {
 
         function getTabHtml(id, label){
         	if(MashupEngine.canEdit){
-        		var tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove page</span></li>";
-        		//var tabTemplate = "<li><a style='' href='#{href}'>#{label}</a> <span style='float:left;' class='pageMenu ui-icon ui-icon-wrench' role='presentation'>&nbsp;</span></li>";
+        		//var tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove page</span></li>";
+        		var tabTemplate = "<li id='z"+id+"'><a style='' href='#{href}'>#{label}</a> <span style='float:left;' class='ui-icon ui-icon-wrench' role='presentation'>&nbsp;</span></li>";
         		li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) );
         		return li;
         	}
@@ -681,12 +726,22 @@ var MashupEngine = (function() {
 					    activate: function(event, ui) {
 					        $('.gridster').remove();
 					        var pageId = ui.newPanel.selector.replace("#page-","");
-					        //var pageId = ui.tab.attributes[0].nodeValue.replace("#page-","");
+					        var originalPage = currentPage;
 					        currentPage = pageId;
-					        getWidgetsForPage();	       
+					        // enable page menu options for newly selected page
+					        var $newPage = $("#pages").find( "> ul li#zpage-"+currentPage + " span");
+					        $newPage.addClass('pageMenu');
+					        // unenable page menu options for last selected page					        
+					        var $oldPage = $("#pages").find( "> ul li#zpage-"+originalPage + " span" );
+					        $oldPage.removeClass('pageMenu');
+					        getWidgetsForPage();
 					    }
-					}		
+					}
 			);
+			
+			// enable first tabs page menu options (starts from 1 rather than the zero based index)
+			var $desiredTab = $("#pages").find("> ul li:nth-child( " + 1 + ") span");
+			$desiredTab.addClass('pageMenu');
 			
 			// close icon: removing the tab on click
 			tabs.delegate( "span.ui-icon-close", "click", function() {
@@ -715,8 +770,13 @@ var MashupEngine = (function() {
 				autoOpen: false,
 				modal: true,
 				buttons: {
-					Add: function() {
-						addNewPage();
+					Update: function() {
+						if($('#pageIdentifier').val()==-1){
+							addNewPage();
+						}
+						else{
+							updatePage();
+						}
 						$(this).dialog("close");
 					},
 					Cancel: function() {
@@ -738,6 +798,8 @@ var MashupEngine = (function() {
 			
 			// addpage button: just opens the dialog
 			$("#add_page").click(function() {
+				$('#addPageDialog').dialog('option', 'title', 'Add Page');
+				$('#pageIdentifier').val(-1);
 				addPageDialog.dialog("open");
 			});
 			//************** end add page dialog **************************
@@ -888,6 +950,7 @@ var MashupEngine = (function() {
 		this.removeWidgetUrl = args.removeWidgetUrl;
 		this.newWidgetInstanceUrl = args.newWidgetInstanceUrl;
 		this.updatePositionsUrl = args.updatePositionsUrl;
+		this.updatePageUrl = args.updatePageUrl;
         layout.init();
     }
 
