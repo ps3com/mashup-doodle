@@ -5,6 +5,7 @@ var mashup_properties = {
 		exportOMDLPageUrl: "/course/format/mashup/classes/actions/exportOmdlAction.php",
 		getWidgetsForPageUrl: "/course/format/mashup/classes/actions/getInstancesForPageAction.php",
 		addNewPageUrl: "/course/format/mashup/classes/actions/newPageAction.php",
+		updatePageUrl: "/course/format/mashup/classes/actions/updatePageAction.php",		
 		getPagesUrl: "/course/format/mashup/classes/actions/getPagesAction.php",
 		removePageUrl: "/course/format/mashup/classes/actions/removePageAction.php",
 		removeWidgetUrl: "/course/format/mashup/classes/actions/removeWidgetAction.php",

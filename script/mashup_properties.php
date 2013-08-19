@@ -9,6 +9,7 @@ var mashup_properties = {
 		exportOMDLPageUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/exportOmdlAction.php",
 		getWidgetsForPageUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/getInstancesForPageAction.php",
 		addNewPageUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/newPageAction.php",
+		updatePageUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/updatePageAction.php",
 		getPagesUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/getPagesAction.php",
 		removePageUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/removePageAction.php",
 		removeWidgetUrl: "'.$CFG->wwwroot.'/course/format/mashup/classes/actions/removeWidgetAction.php",
