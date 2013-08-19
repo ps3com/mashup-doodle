@@ -61,8 +61,13 @@ class W3CRenderer {
 		if (has_capability('moodle/course:manageactivities', $context)) {
 			$this->setProperty($widgetInstance, "moderator", "true", $this->wookieconnection);
 			$this->setProperty($widgetInstance, "conference-manager", "true", $this->wookieconnection);
-		}				
-		return $widgetInstance->getUrl();
+		}
+		if ($widgetInstance instanceof WidgetInstance){
+			return $widgetInstance->getUrl();
+		}
+		else{
+			return $CFG->wwwroot . "/course/format/mashup/notfound.htm";
+		}		
 	}
 
 	private function setProperty($widgetInstance, $key,$value, $wookieconnection){
