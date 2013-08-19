@@ -96,6 +96,9 @@
 .context-menu-item.icon-delete { background-image: url(images/page_white_delete.png); }
 .context-menu-item.icon-add { background-image: url(images/page_white_add.png); }
 .context-menu-item.icon-quit { background-image: url(images/door.png); }
+.context-menu-item.icon-move { background-image: url(images/move.png); }
+.context-menu-item.icon-fullscreen { background-image: url(images/application-resize-full.png); }
+
 
 .context-menu-item.icon-arrow-000-medium { background-image: url(images/arrow-000-medium.png); }
 .context-menu-item.icon-arrow-090-medium { background-image: url(images/arrow-090-medium.png); }
