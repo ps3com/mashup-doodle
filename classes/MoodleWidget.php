@@ -16,7 +16,7 @@ class MoodleWidget {
 	private $pageId;
 	
 
-	function __construct($id, $courseId, $url, $title, $widgetType, $datarow, $datacol, $datasizex, $datasizey, $pageId) {
+	function __construct($id, $courseId=null, $url=null, $title=null, $widgetType=null, $datarow=null, $datacol=null, $datasizex=null, $datasizey=null, $pageId=null) {
 		$this->id = $id;
 		$this->courseId = $courseId;
 		$this->url = $url;
@@ -36,6 +36,30 @@ class MoodleWidget {
 					$this->dataRow, $this->dataCol, $this->dataSizeX, $this->dataSizeY, $this->pageId);
 		}
 		return $this->id;
+	}
+	
+	public function reserialize(){
+		if (isset($this->id)){
+			$mashupDatabaseHelper = new MashupDatabaseHelper();
+			$this->id = $mashupDatabaseHelper->updateWidget($this, $this->courseId);
+		}
+		return $this->id;
+	}
+	
+	public function deserialize(){
+		if (isset($this->id)){
+			$mashupDatabaseHelper = new MashupDatabaseHelper();
+			$persistedwidget = $mashupDatabaseHelper->getSingleWidget($this->id);
+			$this->courseId = $persistedwidget->courseId;
+			$this->url = $persistedwidget->url;
+	    	$this->title = $persistedwidget->title;
+	    	$this->widgetType = $persistedwidget->widgetType;
+	    	$this->dataRow = $persistedwidget->dataRow;
+	    	$this->dataCol = $persistedwidget->dataCol;
+	    	$this->dataSizeX = $persistedwidget->dataSizeX;
+	    	$this->dataSizeY = $persistedwidget->dataSizeY;
+	    	$this->pageId = $persistedwidget->pageId;
+		}
 	}
 	
 	public function toJson() {
