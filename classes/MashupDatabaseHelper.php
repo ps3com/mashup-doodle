@@ -26,11 +26,11 @@ class MashupDatabaseHelper {
 	}
 	
 	function updateWidget($gridsterWidget, $course){
-		$sqlupdate = 'UPDATE `mdl_mashup_widget` SET wrow='.$gridsterWidget->row.',
-												wcol='.$gridsterWidget->col.',
-												size_x='.$gridsterWidget->sizex.',
-												size_y='.$gridsterWidget->sizey.'
-												WHERE entity_id ='.$gridsterWidget->id;
+		$sqlupdate = 'UPDATE `mdl_mashup_widget` SET wrow='.$gridsterWidget->getDataRow().',
+												wcol='.$gridsterWidget->getDataCol().',
+												size_x='.$gridsterWidget->getDataSizeX().',
+												size_y='.$gridsterWidget->getDataSizeY().'
+												WHERE entity_id ='.$gridsterWidget->getId();
 		$result = $this->mashupDatabaseConnector->execute_sql($sqlupdate, false );
 		if ( $result == null ) {
 			return false;
@@ -107,6 +107,19 @@ class MashupDatabaseHelper {
 		return $pages;
 	}
 	
+	function updatePage($page){
+		$sqlupdate = 'UPDATE `mdl_mashup_page` SET mdl_mashup_page.page_name=\''.$page->getTitle().'\',
+												mdl_mashup_page.page_layout	='.$page->getPageLayout().'
+												WHERE mdl_mashup_page.entity_id ='.$page->getId();
+		$result = $this->mashupDatabaseConnector->execute_sql($sqlupdate, false );
+		if ( $result == null ) {
+			return false;
+		}
+		else{
+			return true;
+		}
+	}
+	
 	public function getSinglePage($pageId){
 		$sqllookup = "SELECT mdl_mashup_page.entity_id,
 		mdl_mashup_page.page_name,
@@ -132,7 +145,7 @@ class MashupDatabaseHelper {
 		return $pageLayout[0]->page_layout;
 	}
 	
-	public function getWidgetsForPage($pageId){
+	public function getSingleWidget($dbkey){
 		$sqllookup = "SELECT mdl_mashup_widget.entity_id,
 		mdl_mashup_widget.course_id,
 		mdl_mashup_widget.url,
@@ -144,7 +157,39 @@ class MashupDatabaseHelper {
 		mdl_mashup_widget.size_y,
 		mdl_mashup_widget.page_id
 		from mdl_mashup_widget
-		where mdl_mashup_widget.page_id = $pageId order by wcol, wrow";
+		where mdl_mashup_widget.entity_id = $dbkey";		
+		$persistedWidget = $this->mashupDatabaseConnector->execute_sql ($sqllookup);
+		if (!isset($persistedWidget)){
+			echo $this->mashupDatabaseConnector->get_error();
+		}
+		
+		$moodleWidget = new MoodleWidget($persistedWidget[0]->entity_id, $persistedWidget[0]->course_id, $persistedWidget[0]->url, $persistedWidget[0]->title,
+				$persistedWidget[0]->widget_type, $persistedWidget[0]->wrow, $persistedWidget[0]->wcol,
+				$persistedWidget[0]->size_x, $persistedWidget[0]->size_y, $persistedWidget[0]->page_id);
+		return $moodleWidget;
+	}
+	
+	public function getWidgetsForPage($pageId, $thisColumnOnly=null){
+		$sqllookup = "SELECT mdl_mashup_widget.entity_id,
+		mdl_mashup_widget.course_id,
+		mdl_mashup_widget.url,
+		mdl_mashup_widget.title,
+		mdl_mashup_widget.widget_type,
+		mdl_mashup_widget.wrow,
+		mdl_mashup_widget.wcol,
+		mdl_mashup_widget.size_x,
+		mdl_mashup_widget.size_y,
+		mdl_mashup_widget.page_id
+		from mdl_mashup_widget
+		where mdl_mashup_widget.page_id = $pageId";
+		
+		// if this is set only get the widgets from this particular column
+		if(isset($thisColumnOnly)){
+			$sqllookup .= " AND mdl_mashup_widget.wcol = " . $thisColumnOnly;
+		}
+		
+		$sqllookup .= " order by wcol, wrow";
+		//echo $sqllookup;
 		$persistedWidgets = $this->mashupDatabaseConnector->execute_sql ($sqllookup);
 		$widgets = array();
 		if (!isset($persistedWidgets)){
@@ -161,5 +206,6 @@ class MashupDatabaseHelper {
 		}
 		return $widgets;
 	}
+	
 }
 ?>
